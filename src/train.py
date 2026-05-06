@@ -2,6 +2,7 @@ import argparse
 
 import torch
 import yaml
+import os
 from tqdm import tqdm
 
 from data import get_mnist_loaders
@@ -18,6 +19,8 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
 
     total_loss = 0.0
     total_acc = 0.0
+    total_ce = 0.0
+    total_kd_kl = 0.0
     n_batches = 0
 
     progress = tqdm(loader, desc=f"epoch {epoch:03d} train", leave=False)
@@ -50,6 +53,8 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
 
         total_loss += loss.item()
         total_acc += accuracy(student_logits.detach(), labels)
+        total_ce += terms.get("ce", 0.0)
+        total_kd_kl += terms.get("kd_kl", 0.0)
         n_batches += 1
         
         progress.set_postfix(
@@ -60,8 +65,8 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
     return {
         "train_loss": total_loss / n_batches,
         "train_acc": total_acc / n_batches,
-        "train_ce": terms.get("ce", 0.0),
-        "train_kd_kl": terms.get("kd_kl", 0.0),
+        "train_ce": total_ce / n_batches,
+        "train_kd_kl": total_kd_kl / n_batches,
     }
 
 
@@ -118,7 +123,9 @@ def main():
 
     with open(args.config, "r") as f:
         cfg = yaml.safe_load(f)
-
+    if os.path.exists(cfg["save"]["metrics_path"]):
+        os.remove(cfg["save"]["metrics_path"])
+    
     set_seed(cfg["seed"])
     device = get_device()
 
