@@ -1,0 +1,7 @@
+__pycache__/
+.venv/
+checkpoints/*.pt
+results/*.csv
+results/*.json
+data/
+notes/

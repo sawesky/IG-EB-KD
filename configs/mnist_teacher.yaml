@@ -1,0 +1,26 @@
+experiment_name: mnist_teacher
+mode: ce
+seed: 42
+
+data:
+  root: data
+  batch_size: 128
+  num_workers: 2
+
+model:
+  name: lenet
+  channels1: 32
+  channels2: 64
+  hidden: 128
+
+train:
+  epochs: 5
+  lr: 0.001
+  weight_decay: 0.0001
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/mnist_teacher.pt
+  metrics_path: results/mnist_teacher.csv
