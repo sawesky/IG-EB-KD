@@ -1,0 +1,36 @@
+experiment_name: mnist_student_kd_fisher_a100p0
+mode: kd
+seed: 42
+data:
+  root: data
+  batch_size: 128
+  num_workers: 2
+model:
+  name: lenet
+  channels1: 8
+  channels2: 16
+  hidden: 64
+teacher:
+  checkpoint_path: checkpoints/mnist_teacher.pt
+  model:
+    name: lenet
+    channels1: 32
+    channels2: 64
+    hidden: 128
+train:
+  epochs: 5
+  lr: 0.001
+  weight_decay: 0.0001
+kd:
+  temperature: 4.0
+  lambda_kd: 0.7
+extensions:
+  fisher_alpha: 100.0
+  energy_beta: 0.0
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+eval:
+  ece_bins: 15
+save:
+  checkpoint_path: checkpoints/mnist_student_kd_fisher_a100p0.pt
+  metrics_path: results/mnist_student_kd_fisher_a100p0.csv
