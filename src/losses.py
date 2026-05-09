@@ -24,14 +24,23 @@ def kd_loss(student_logits, teacher_logits, labels, temperature=4.0, lambda_kd=0
     total = (1.0 - lambda_kd) * ce + lambda_kd * kl
     return total, {"ce": ce.item(), "kd_kl": kl.item()}
 
+# output space fisher
+
+def output_fisher_matrix(logits):
+    p = F.softmax(logits, dim=1)
+    diag_p = torch.diag_embed(p)
+    outer_p = p.unsqueeze(2) * p.unsqueeze(1)
+    return diag_p - outer_p
+
+def output_fisher_loss(student_logits, teacher_logits):
+    student_fisher = output_fisher_matrix(student_logits)
+    teacher_fisher = output_fisher_matrix(teacher_logits)
+    return torch.mean((student_fisher - teacher_fisher) ** 2)
+
 
 # ----------------------
 # for later checkpoints
 # ----------------------
-
-def output_fisher_loss(student_logits, teacher_logits):
-    raise NotImplementedError("not yet")
-
 
 def energy_margin_loss(student_logits, teacher_logits, top_k=3):
     raise NotImplementedError("not yet")

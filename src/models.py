@@ -12,7 +12,7 @@ class LeNet(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(1, channels1, kernel_size=5, padding=2)
         self.conv2 = nn.Conv2d(channels1, channels2, kernel_size=5, padding=2)
-        self.fc1 = nn.Linear(channels2 * 7 * 7, hidden)
+        self.fc1 = nn.Linear(channels2 * 7 * 7, hidden) # hard-coded
         self.fc2 = nn.Linear(hidden, num_classes)
 
     def forward(self, x, return_features=False):

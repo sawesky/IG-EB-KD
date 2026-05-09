@@ -6,7 +6,7 @@ import os
 from tqdm import tqdm
 
 from data import get_mnist_loaders
-from losses import ce_loss, kd_loss
+from losses import ce_loss, kd_loss, output_fisher_loss
 from metrics import accuracy, expected_calibration_error, nll, teacher_student_kl
 from models import make_model
 from utils import append_metrics, get_device, load_checkpoint, save_checkpoint, set_seed
@@ -21,6 +21,7 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
     total_acc = 0.0
     total_ce = 0.0
     total_kd_kl = 0.0
+    total_fisher = 0.0
     n_batches = 0
 
     progress = tqdm(loader, desc=f"epoch {epoch:03d} train", leave=False)
@@ -33,9 +34,12 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
         student_logits = model(images)
 
         if cfg["mode"] == "ce":
+
             loss = ce_loss(student_logits, labels)
             terms = {"ce": loss.item(), "kd_kl": 0.0}
+
         elif cfg["mode"] == "kd":
+
             with torch.no_grad():
                 teacher_logits = teacher(images)
             loss, terms = kd_loss(
@@ -45,6 +49,15 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
                 temperature=cfg["kd"]["temperature"],
                 lambda_kd=cfg["kd"]["lambda_kd"],
             )
+
+            fisher_alpha = cfg["extensions"]["fisher_alpha"]
+
+            if fisher_alpha > 0.0:
+                fisher_loss = output_fisher_loss(student_logits, teacher_logits)
+                loss = loss + fisher_alpha * fisher_loss
+                terms["fisher"] = fisher_loss.item()
+            else:
+                terms["fisher"] = 0.0
         else:
             raise ValueError(f"Unknown mode: {cfg['mode']}")
 
@@ -53,6 +66,7 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
 
         total_loss += loss.item()
         total_acc += accuracy(student_logits.detach(), labels)
+        total_fisher += terms.get("fisher", 0.0)
         total_ce += terms.get("ce", 0.0)
         total_kd_kl += terms.get("kd_kl", 0.0)
         n_batches += 1
@@ -67,6 +81,7 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
         "train_acc": total_acc / n_batches,
         "train_ce": total_ce / n_batches,
         "train_kd_kl": total_kd_kl / n_batches,
+        "train_fisher": total_fisher / n_batches,
     }
 
 
