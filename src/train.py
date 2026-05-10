@@ -6,7 +6,7 @@ import os
 from tqdm import tqdm
 
 from data import get_mnist_loaders
-from losses import ce_loss, kd_loss, output_fisher_loss
+from losses import ce_loss, kd_loss, output_fisher_loss, energy_margin_loss
 from metrics import accuracy, expected_calibration_error, nll, teacher_student_kl
 from models import make_model
 from utils import append_metrics, get_device, load_checkpoint, save_checkpoint, set_seed
@@ -22,6 +22,7 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
     total_ce = 0.0
     total_kd_kl = 0.0
     total_fisher = 0.0
+    total_energy_margin = 0.0
     n_batches = 0
 
     progress = tqdm(loader, desc=f"epoch {epoch:03d} train", leave=False)
@@ -58,6 +59,16 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
                 terms["fisher"] = fisher_loss.item()
             else:
                 terms["fisher"] = 0.0
+
+            energy_beta = cfg["extensions"]["energy_beta"]
+
+            if energy_beta > 0.0:
+                margin_loss = energy_margin_loss(student_logits, teacher_logits)
+                loss = loss + energy_beta * margin_loss
+                terms["energy_margin"] = margin_loss.item()
+            else:
+                terms["energy_margin"] = 0.0
+
         else:
             raise ValueError(f"Unknown mode: {cfg['mode']}")
 
@@ -67,6 +78,7 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
         total_loss += loss.item()
         total_acc += accuracy(student_logits.detach(), labels)
         total_fisher += terms.get("fisher", 0.0)
+        total_energy_margin += terms.get("energy_margin", 0.0)
         total_ce += terms.get("ce", 0.0)
         total_kd_kl += terms.get("kd_kl", 0.0)
         n_batches += 1
@@ -82,6 +94,7 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
         "train_ce": total_ce / n_batches,
         "train_kd_kl": total_kd_kl / n_batches,
         "train_fisher": total_fisher / n_batches,
+        "train_energy_margin": total_energy_margin / n_batches,
     }
 
 
@@ -95,6 +108,7 @@ def evaluate(model, teacher, loader, cfg, device, epoch):
     total_nll = 0.0
     total_ece = 0.0
     total_ts_kl = 0.0
+    total_energy_mismatch = 0.0
     n_batches = 0
     
     progress = tqdm(loader, desc=f"epoch {epoch:03d} eval", leave=False)
@@ -114,6 +128,7 @@ def evaluate(model, teacher, loader, cfg, device, epoch):
         if teacher is not None:
             teacher_logits = teacher(images)
             total_ts_kl += teacher_student_kl(student_logits, teacher_logits)
+            total_energy_mismatch += energy_margin_loss(student_logits, teacher_logits).item()
 
         n_batches += 1
 
@@ -128,6 +143,7 @@ def evaluate(model, teacher, loader, cfg, device, epoch):
         "test_nll": total_nll / n_batches,
         "test_ece": total_ece / n_batches,
         "test_teacher_student_kl": total_ts_kl / n_batches if teacher is not None else 0.0,
+        "test_energy_mismatch": total_energy_mismatch / n_batches if teacher is not None else 0.0,
     }
 
 

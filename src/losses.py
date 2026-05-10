@@ -37,14 +37,24 @@ def output_fisher_loss(student_logits, teacher_logits):
     teacher_fisher = output_fisher_matrix(teacher_logits)
     return torch.mean((student_fisher - teacher_fisher) ** 2)
 
+# energy margin
+
+def logit_margins(logits):
+    num_classes = logits.shape[1]
+    i, j = torch.triu_indices(num_classes, num_classes, offset=1, device=logits.device) # upper triangular without main diag (offset = 1) 
+    return logits[:, i] - logits[:, j] # z_i - z_j for all i < j
+
+
+def energy_margin_loss(student_logits, teacher_logits):
+    student_margins = logit_margins(student_logits)
+    teacher_margins = logit_margins(teacher_logits)
+
+    return torch.mean((student_margins - teacher_margins) ** 2)
+
 
 # ----------------------
 # for later checkpoints
 # ----------------------
-
-def energy_margin_loss(student_logits, teacher_logits, top_k=3):
-    raise NotImplementedError("not yet")
-
 
 def parameter_fisher_loss(student_model, teacher_model, batch):
     raise NotImplementedError("optional")

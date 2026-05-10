@@ -1,4 +1,4 @@
-experiment_name: mnist_student_kd_fisher
+experiment_name: mnist_student_kd_energy
 mode: kd
 seed: 42
 
@@ -31,8 +31,8 @@ kd:
   lambda_kd: 0.7
 
 extensions:
-  fisher_alpha: 1.0
-  energy_beta: 0.0
+  fisher_alpha: 0.0
+  energy_beta: 1.0
   param_fisher_gamma: 0.0
   grad_field_delta: 0.0
 
@@ -40,5 +40,5 @@ eval:
   ece_bins: 15
 
 save:
-  checkpoint_path: checkpoints/mnist_student_kd_fisher.pt
-  metrics_path: results/mnist_student_kd_fisher.csv
+  checkpoint_path: checkpoints/mnist_student_kd_energy.pt
+  metrics_path: results/mnist_student_kd_energy.csv
