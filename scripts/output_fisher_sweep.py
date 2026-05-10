@@ -5,7 +5,7 @@ import subprocess
 import yaml
 
 BASE_CONFIG = "configs/mnist_student_kd_fisher.yaml"
-ALPHAS = [0.1, 1.0, 10.0, 100.0]
+ALPHAS = [0.01, 0.1, 1.0, 10.0]
 
 def alpha_to_name(alpha):
     return str(alpha).replace(".", "p")

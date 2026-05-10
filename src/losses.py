@@ -15,7 +15,7 @@ def kd_kl_loss(student_logits, teacher_logits, temp):
     """
     log_p_student = F.log_softmax(student_logits / temp, dim = 1)
     p_teacher = F.softmax(teacher_logits / temp, dim = 1)
-    return F.kl_div(log_p_student, p_teacher, reduction = "batchmean") * (temp * temp)
+    return F.kl_div(log_p_student, p_teacher, reduction = "batchmean") * (temp * temp) # temp*temp for bcs of 1/temp in p_student and p_teacher
 
 
 def kd_loss(student_logits, teacher_logits, labels, temperature=4.0, lambda_kd=0.7):
@@ -35,7 +35,8 @@ def output_fisher_matrix(logits):
 def output_fisher_loss(student_logits, teacher_logits):
     student_fisher = output_fisher_matrix(student_logits)
     teacher_fisher = output_fisher_matrix(teacher_logits)
-    return torch.mean((student_fisher - teacher_fisher) ** 2)
+    diff = student_fisher - teacher_fisher # sample diff
+    return (diff ** 2).sum(dim=(1, 2)).mean() # sum in sample -> average over these sums
 
 # energy margin
 
@@ -49,7 +50,7 @@ def energy_margin_loss(student_logits, teacher_logits):
     student_margins = logit_margins(student_logits)
     teacher_margins = logit_margins(teacher_logits)
 
-    return torch.mean((student_margins - teacher_margins) ** 2)
+    return torch.mean((student_margins - teacher_margins) ** 2) # mean over class pairs then batch mean
 
 
 # ----------------------

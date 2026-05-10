@@ -37,7 +37,12 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
         if cfg["mode"] == "ce":
 
             loss = ce_loss(student_logits, labels)
-            terms = {"ce": loss.item(), "kd_kl": 0.0}
+            terms = {
+                    "ce": loss.item(),
+                    "kd_kl": 0.0,
+                    "fisher": 0.0,
+                    "energy_margin": 0.0,
+            }
 
         elif cfg["mode"] == "kd":
 
@@ -77,10 +82,10 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
 
         total_loss += loss.item()
         total_acc += accuracy(student_logits.detach(), labels)
-        total_fisher += terms.get("fisher", 0.0)
-        total_energy_margin += terms.get("energy_margin", 0.0)
         total_ce += terms.get("ce", 0.0)
         total_kd_kl += terms.get("kd_kl", 0.0)
+        total_fisher += terms.get("fisher", 0.0)
+        total_energy_margin += terms.get("energy_margin", 0.0)
         n_batches += 1
         
         progress.set_postfix(
@@ -108,6 +113,7 @@ def evaluate(model, teacher, loader, cfg, device, epoch):
     total_nll = 0.0
     total_ece = 0.0
     total_ts_kl = 0.0
+    total_fisher_mismatch = 0.0
     total_energy_mismatch = 0.0
     n_batches = 0
     
@@ -128,6 +134,7 @@ def evaluate(model, teacher, loader, cfg, device, epoch):
         if teacher is not None:
             teacher_logits = teacher(images)
             total_ts_kl += teacher_student_kl(student_logits, teacher_logits)
+            total_fisher_mismatch += output_fisher_loss(student_logits, teacher_logits).item()
             total_energy_mismatch += energy_margin_loss(student_logits, teacher_logits).item()
 
         n_batches += 1
@@ -143,6 +150,7 @@ def evaluate(model, teacher, loader, cfg, device, epoch):
         "test_nll": total_nll / n_batches,
         "test_ece": total_ece / n_batches,
         "test_teacher_student_kl": total_ts_kl / n_batches if teacher is not None else 0.0,
+        "test_fisher_mismatch": total_fisher_mismatch / n_batches if teacher is not None else 0.0,
         "test_energy_mismatch": total_energy_mismatch / n_batches if teacher is not None else 0.0,
     }
 
