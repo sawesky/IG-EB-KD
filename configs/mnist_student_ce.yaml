@@ -6,6 +6,7 @@ data:
   root: data
   batch_size: 128
   num_workers: 2
+  val_size: 0.2
 
 model:
   name: lenet
@@ -14,7 +15,8 @@ model:
   hidden: 64
 
 train:
-  epochs: 5
+  epochs: 50
+  patience: 5
   lr: 0.001
   weight_decay: 0.0001
 

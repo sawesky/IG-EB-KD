@@ -3,6 +3,7 @@ import csv
 
 
 RUNS = [
+    ("T", "results/mnist_teacher.csv"),
     ("CE", "results/mnist_student_ce.csv"),
     ("KD", "results/mnist_student_kd.csv"),
     ("KD + Fisher", "results/mnist_student_kd_fisher.csv"),
@@ -41,48 +42,46 @@ def summarize_run(method, path):
     if len(rows) == 0:
         return None
 
-    final_row = rows[-1]
+    test_rows = [row for row in rows if row.get("phase") == "test"]
 
-    best_row = max(rows, key=lambda r: get_float(r, "test_acc"))
+    if len(test_rows) == 0:
+        print(f"no final test row found in: {path}")
+        return None
+
+    test_row = test_rows[-1]
 
     return {
         "method": method,
-        "best_epoch": int(get_float(best_row, "epoch")),
-        "best_acc": get_float(best_row, "test_acc"),
-        "final_acc": get_float(final_row, "test_acc"),
-        "final_nll": get_float(final_row, "test_nll"),
-        "final_ece": get_float(final_row, "test_ece"),
-        "final_ts_kl": get_float(final_row, "test_teacher_student_kl"),
-        "final_fisher_mismatch": get_float(final_row, "test_fisher_mismatch"),
-        "final_energy_mismatch": get_float(final_row, "test_energy_mismatch"),
-        "final_train_fisher": get_float(final_row, "train_fisher"),
-        "final_train_energy_margin": get_float(final_row, "train_energy_margin"),
+        "best_epoch": int(float(test_row.get("best_epoch", 0))),
+        "test_acc": get_float(test_row, "test_acc"),
+        "test_nll": get_float(test_row, "test_nll"),
+        "test_ece": get_float(test_row, "test_ece"),
+        "test_ts_kl": get_float(test_row, "test_teacher_student_kl"),
+        "test_fisher_mismatch": get_float(test_row, "test_fisher_mismatch"),
+        "test_energy_mismatch": get_float(test_row, "test_energy_mismatch"),
     }
-
 
 def print_table(summary_rows):
     columns = [
         "method",
         "best_epoch",
-        "best_acc",
-        "final_acc",
-        "final_nll",
-        "final_ece",
-        "final_ts_kl",
-        "final_fisher_mismatch",
-        "final_energy_mismatch",
+        "test_acc",
+        "test_nll",
+        "test_ece",
+        "test_ts_kl",
+        "test_fisher_mismatch",
+        "test_energy_mismatch",
     ]
 
     widths = {
         "method": 24,
         "best_epoch": 10,
-        "best_acc": 10,
-        "final_acc": 10,
-        "final_nll": 10,
-        "final_ece": 10,
-        "final_ts_kl": 12,
-        "final_fisher_mismatch": 22,
-        "final_energy_mismatch": 22,
+        "test_acc": 10,
+        "test_nll": 10,
+        "test_ece": 10,
+        "test_ts_kl": 12,
+        "test_fisher_mismatch": 22,
+        "test_energy_mismatch": 22,
     }
 
     header = " | ".join(col.ljust(widths[col]) for col in columns)
@@ -93,14 +92,14 @@ def print_table(summary_rows):
         values = []
 
         for col in columns:
-            value = row[col]
+            value = row.get(col, "")
 
             if col == "method":
                 values.append(str(value).ljust(widths[col]))
             elif col == "best_epoch":
                 values.append(str(value).ljust(widths[col]))
             else:
-                values.append(f"{value:.6f}".ljust(widths[col]))
+                values.append(f"{float(value):.6f}".ljust(widths[col]))
 
         print(" | ".join(values))
 
@@ -111,15 +110,12 @@ def save_summary(summary_rows):
     fieldnames = [
         "method",
         "best_epoch",
-        "best_acc",
-        "final_acc",
-        "final_nll",
-        "final_ece",
-        "final_ts_kl",
-        "final_fisher_mismatch",
-        "final_energy_mismatch",
-        "final_train_fisher",
-        "final_train_energy_margin",
+        "test_acc",
+        "test_nll",
+        "test_ece",
+        "test_ts_kl",
+        "test_fisher_mismatch",
+        "test_energy_mismatch",
     ]
 
     with open(SUMMARY_PATH, "w", newline="") as f:

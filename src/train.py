@@ -9,7 +9,7 @@ from data import get_mnist_loaders
 from losses import ce_loss, kd_loss, output_fisher_loss, energy_margin_loss
 from metrics import accuracy, expected_calibration_error, nll, teacher_student_kl
 from models import make_model
-from utils import append_metrics, get_device, load_checkpoint, save_checkpoint, set_seed
+from utils import append_metrics, get_device, load_checkpoint, save_checkpoint, set_seed, make_row
 
 
 def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
@@ -146,12 +146,12 @@ def evaluate(model, teacher, loader, cfg, device, epoch):
         )
 
     return {
-        "test_acc": total_acc / n_batches,
-        "test_nll": total_nll / n_batches,
-        "test_ece": total_ece / n_batches,
-        "test_teacher_student_kl": total_ts_kl / n_batches if teacher is not None else 0.0,
-        "test_fisher_mismatch": total_fisher_mismatch / n_batches if teacher is not None else 0.0,
-        "test_energy_mismatch": total_energy_mismatch / n_batches if teacher is not None else 0.0,
+        "acc": total_acc / n_batches,
+        "nll": total_nll / n_batches,
+        "ece": total_ece / n_batches,
+        "teacher_student_kl": total_ts_kl / n_batches if teacher is not None else 0.0,
+        "fisher_mismatch": total_fisher_mismatch / n_batches if teacher is not None else 0.0,
+        "energy_mismatch": total_energy_mismatch / n_batches if teacher is not None else 0.0,
     }
 
 
@@ -168,10 +168,12 @@ def main():
     set_seed(cfg["seed"])
     device = get_device()
 
-    train_loader, test_loader = get_mnist_loaders(
+    train_loader, val_loader, test_loader = get_mnist_loaders(
         root=cfg["data"]["root"],
         batch_size=cfg["data"]["batch_size"],
         num_workers=cfg["data"]["num_workers"],
+        val_size=cfg["data"]["val_size"],
+        seed=cfg["seed"],
     )
 
     model = make_model(cfg["model"]).to(device)
@@ -189,28 +191,65 @@ def main():
         weight_decay=cfg["train"]["weight_decay"],
     )
 
-    best_acc = 0.0
+    best_val_acc = 0
+    best_val_nll = float("inf")
+    best_epoch = 0
+    epochs_without_improvement = 0
+    patience = cfg["train"]["patience"]
 
     for epoch in range(1, cfg["train"]["epochs"] + 1):
         train_stats = train_one_epoch(model, teacher, train_loader, optimizer, cfg, device, epoch)
-        test_stats = evaluate(model, teacher, test_loader, cfg, device, epoch)
+        val_stats = evaluate(model, teacher, val_loader, cfg, device, epoch)
 
-        row = {"epoch": epoch, **train_stats, **test_stats}
+        row = make_row(
+            phase="val",
+            epoch=epoch,
+            train_stats=train_stats,
+            val_stats=val_stats,
+        )
         append_metrics(cfg["save"]["metrics_path"], row)
 
         print(
             f"epoch {epoch:03d} | "
-            f"train loss {row['train_loss']:.4f} | "
-            f"test acc {row['test_acc']:.4f} | "
-            f"test nll {row['test_nll']:.4f} | "
-            f"ece {row['test_ece']:.4f}"
+            f"train loss {train_stats['train_loss']:.4f} | "
+            f"val acc {val_stats['acc']:.4f} | "
+            f"val nll {val_stats['nll']:.4f} | "
+            f"val ece {val_stats['ece']:.4f}"
         )
 
-        if row["test_acc"] > best_acc:
-            best_acc = row["test_acc"]
+        if val_stats["nll"] < best_val_nll:
+            best_val_nll = val_stats["nll"]
+            best_epoch = epoch
+            epochs_without_improvement = 0
             save_checkpoint(model, cfg["save"]["checkpoint_path"])
+        else:
+            epochs_without_improvement += 1
 
-    print(f"best test acc: {best_acc:.4f}")
+        if epochs_without_improvement >= patience:
+            print(f"early stopping at epoch {epoch:03d}")
+            break
+
+    model.load_state_dict(torch.load(cfg["save"]["checkpoint_path"], map_location=device))
+    model.eval()
+
+    test_stats = evaluate(model, teacher, test_loader, cfg, device, epoch=best_epoch)
+
+    test_row = make_row(
+        phase="test",
+        epoch="final",
+        test_stats=test_stats,
+        best_epoch=best_epoch,
+    )
+    append_metrics(cfg["save"]["metrics_path"], test_row)
+
+    print(
+        f"final test | "
+        f"best epoch {best_epoch:03d} | "
+        f"test acc {test_stats['acc']:.4f} | "
+        f"test nll {test_stats['nll']:.4f} | "
+        f"test ece {test_stats['ece']:.4f}"
+    )
+
     print(f"saved checkpoint: {cfg['save']['checkpoint_path']}")
     print(f"saved metrics: {cfg['save']['metrics_path']}")
 
