@@ -5,7 +5,7 @@ import subprocess
 import yaml
 
 BASE_CONFIG = "configs/mnist_student_kd_energy.yaml"
-BETAS = [0.001, 0.01, 0.1, 1.0]
+BETAS = [0.0005, 0.001, 0.005, 0.01, 0.05, 0.1]
 
 def beta_to_name(beta):
     return str(beta).replace(".", "p")

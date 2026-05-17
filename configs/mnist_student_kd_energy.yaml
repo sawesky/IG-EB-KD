@@ -4,8 +4,8 @@ seed: 42
 
 data:
   root: data
-  batch_size: 128
-  num_workers: 2
+  batch_size: 512
+  num_workers: 0
   val_size: 0.2
 
 model:
@@ -29,12 +29,12 @@ train:
   weight_decay: 0.0001
 
 kd:
-  temperature: 4.0
-  lambda_kd: 0.7
+  temperature: 1.5
+  lambda_kd: 0.3
 
 extensions:
   fisher_alpha: 0.0
-  energy_beta: 0.01
+  energy_beta: 0.05
   param_fisher_gamma: 0.0
   grad_field_delta: 0.0
 
