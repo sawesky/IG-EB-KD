@@ -1,9 +1,9 @@
-experiment_name: mnist_student_kd_fisher
+experiment_name: fashion_student_kd_fisher_energy
 mode: kd
 seed: 42
 
 data:
-  dataset: mnist
+  dataset: fashion_mnist
   root: data
   batch_size: 512
   num_workers: 0
@@ -16,7 +16,7 @@ model:
   hidden: 64
 
 teacher:
-  checkpoint_path: checkpoints/mnist_teacher.pt
+  checkpoint_path: checkpoints/fashion_teacher.pt
   model:
     name: lenet
     channels1: 32
@@ -24,7 +24,7 @@ teacher:
     hidden: 128
 
 train:
-  epochs: 50
+  epochs: 100
   patience: 5
   lr: 0.001
   weight_decay: 0.0001
@@ -34,8 +34,8 @@ kd:
   lambda_kd: 0.3
 
 extensions:
-  fisher_alpha: 0.005
-  energy_beta: 0.0
+  fisher_alpha: 0.00001
+  energy_beta: 0.01
   param_fisher_gamma: 0.0
   grad_field_delta: 0.0
 
@@ -43,5 +43,5 @@ eval:
   ece_bins: 15
 
 save:
-  checkpoint_path: checkpoints/mnist_student_kd_fisher.pt
-  metrics_path: results/mnist_student_kd_fisher.csv
+  checkpoint_path: checkpoints/fashion_student_kd_fisher_energy.pt
+  metrics_path: results/fashion_student_kd_fisher_energy.csv

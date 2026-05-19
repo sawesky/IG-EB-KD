@@ -3,6 +3,7 @@ mode: kd
 seed: 42
 
 data:
+  dataset: mnist
   root: data
   batch_size: 512
   num_workers: 0

@@ -5,7 +5,7 @@ import yaml
 import os
 from tqdm import tqdm
 
-from data import get_mnist_loaders
+from data import get_image_loaders
 from losses import ce_loss, kd_loss, output_fisher_loss, energy_margin_loss
 from metrics import accuracy, expected_calibration_error, nll, teacher_student_kl
 from models import make_model
@@ -168,7 +168,8 @@ def main():
     set_seed(cfg["seed"])
     device = get_device()
 
-    train_loader, val_loader, test_loader = get_mnist_loaders(
+    train_loader, val_loader, test_loader = get_image_loaders(
+        dataset_name=cfg["data"]["dataset"],
         root=cfg["data"]["root"],
         batch_size=cfg["data"]["batch_size"],
         num_workers=cfg["data"]["num_workers"],

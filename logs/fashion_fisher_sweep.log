@@ -1,0 +1,349 @@
+epoch 001 | train loss 1.0971 | val acc 0.7826 | val nll 0.5805 | val ece 0.0443
+epoch 002 | train loss 0.5583 | val acc 0.8366 | val nll 0.4632 | val ece 0.0423
+epoch 003 | train loss 0.4672 | val acc 0.8489 | val nll 0.4320 | val ece 0.0431
+epoch 004 | train loss 0.4173 | val acc 0.8645 | val nll 0.3875 | val ece 0.0358
+epoch 005 | train loss 0.3811 | val acc 0.8713 | val nll 0.3614 | val ece 0.0327
+epoch 006 | train loss 0.3527 | val acc 0.8674 | val nll 0.3681 | val ece 0.0366
+epoch 007 | train loss 0.3404 | val acc 0.8784 | val nll 0.3412 | val ece 0.0342
+epoch 008 | train loss 0.3193 | val acc 0.8820 | val nll 0.3365 | val ece 0.0340
+epoch 009 | train loss 0.3016 | val acc 0.8819 | val nll 0.3393 | val ece 0.0361
+epoch 010 | train loss 0.2943 | val acc 0.8849 | val nll 0.3242 | val ece 0.0364
+epoch 011 | train loss 0.2807 | val acc 0.8905 | val nll 0.3117 | val ece 0.0340
+epoch 012 | train loss 0.2703 | val acc 0.8909 | val nll 0.3114 | val ece 0.0318
+epoch 013 | train loss 0.2612 | val acc 0.8896 | val nll 0.3187 | val ece 0.0357
+epoch 014 | train loss 0.2564 | val acc 0.8953 | val nll 0.2982 | val ece 0.0313
+epoch 015 | train loss 0.2472 | val acc 0.8958 | val nll 0.2999 | val ece 0.0337
+epoch 016 | train loss 0.2386 | val acc 0.8983 | val nll 0.2884 | val ece 0.0328
+epoch 017 | train loss 0.2316 | val acc 0.8991 | val nll 0.2835 | val ece 0.0312
+epoch 018 | train loss 0.2252 | val acc 0.8987 | val nll 0.2899 | val ece 0.0331
+epoch 019 | train loss 0.2231 | val acc 0.8965 | val nll 0.2882 | val ece 0.0315
+epoch 020 | train loss 0.2127 | val acc 0.9019 | val nll 0.2733 | val ece 0.0308
+epoch 021 | train loss 0.2072 | val acc 0.9027 | val nll 0.2747 | val ece 0.0315
+epoch 022 | train loss 0.2044 | val acc 0.9014 | val nll 0.2820 | val ece 0.0348
+epoch 023 | train loss 0.2011 | val acc 0.9026 | val nll 0.2718 | val ece 0.0328
+epoch 024 | train loss 0.1967 | val acc 0.9047 | val nll 0.2758 | val ece 0.0333
+epoch 025 | train loss 0.1955 | val acc 0.9034 | val nll 0.2774 | val ece 0.0368
+epoch 026 | train loss 0.1897 | val acc 0.9055 | val nll 0.2706 | val ece 0.0317
+epoch 027 | train loss 0.1856 | val acc 0.9070 | val nll 0.2656 | val ece 0.0323
+epoch 028 | train loss 0.1787 | val acc 0.9080 | val nll 0.2666 | val ece 0.0333
+epoch 029 | train loss 0.1769 | val acc 0.9082 | val nll 0.2661 | val ece 0.0330
+epoch 030 | train loss 0.1719 | val acc 0.8999 | val nll 0.2812 | val ece 0.0367
+epoch 031 | train loss 0.1680 | val acc 0.9098 | val nll 0.2562 | val ece 0.0318
+epoch 032 | train loss 0.1716 | val acc 0.9095 | val nll 0.2566 | val ece 0.0342
+epoch 033 | train loss 0.1644 | val acc 0.9071 | val nll 0.2602 | val ece 0.0323
+epoch 034 | train loss 0.1601 | val acc 0.9113 | val nll 0.2561 | val ece 0.0316
+epoch 035 | train loss 0.1596 | val acc 0.9105 | val nll 0.2598 | val ece 0.0330
+epoch 036 | train loss 0.1580 | val acc 0.9131 | val nll 0.2529 | val ece 0.0331
+epoch 037 | train loss 0.1525 | val acc 0.9131 | val nll 0.2489 | val ece 0.0311
+epoch 038 | train loss 0.1520 | val acc 0.9095 | val nll 0.2572 | val ece 0.0311
+epoch 039 | train loss 0.1493 | val acc 0.9094 | val nll 0.2612 | val ece 0.0328
+epoch 040 | train loss 0.1473 | val acc 0.9109 | val nll 0.2567 | val ece 0.0326
+epoch 041 | train loss 0.1454 | val acc 0.9145 | val nll 0.2499 | val ece 0.0326
+epoch 042 | train loss 0.1429 | val acc 0.9121 | val nll 0.2503 | val ece 0.0341
+early stopping at epoch 042
+final test | best epoch 037 | test acc 0.9096 | test nll 0.2654 | test ece 0.0338
+saved checkpoint: checkpoints/fashion_student_kd_fisher_a0p00001.pt
+saved metrics: results/fashion_student_kd_fisher_a0p00001.csv
+epoch 001 | train loss 1.0971 | val acc 0.7826 | val nll 0.5806 | val ece 0.0442
+epoch 002 | train loss 0.5583 | val acc 0.8358 | val nll 0.4644 | val ece 0.0420
+epoch 003 | train loss 0.4670 | val acc 0.8499 | val nll 0.4313 | val ece 0.0415
+epoch 004 | train loss 0.4175 | val acc 0.8645 | val nll 0.3876 | val ece 0.0367
+epoch 005 | train loss 0.3809 | val acc 0.8716 | val nll 0.3616 | val ece 0.0337
+epoch 006 | train loss 0.3528 | val acc 0.8664 | val nll 0.3697 | val ece 0.0363
+epoch 007 | train loss 0.3406 | val acc 0.8782 | val nll 0.3416 | val ece 0.0328
+epoch 008 | train loss 0.3193 | val acc 0.8812 | val nll 0.3373 | val ece 0.0326
+epoch 009 | train loss 0.3019 | val acc 0.8820 | val nll 0.3402 | val ece 0.0376
+epoch 010 | train loss 0.2944 | val acc 0.8845 | val nll 0.3253 | val ece 0.0363
+epoch 011 | train loss 0.2808 | val acc 0.8908 | val nll 0.3116 | val ece 0.0336
+epoch 012 | train loss 0.2704 | val acc 0.8909 | val nll 0.3096 | val ece 0.0317
+epoch 013 | train loss 0.2615 | val acc 0.8896 | val nll 0.3180 | val ece 0.0343
+epoch 014 | train loss 0.2560 | val acc 0.8957 | val nll 0.2975 | val ece 0.0331
+epoch 015 | train loss 0.2477 | val acc 0.8963 | val nll 0.3001 | val ece 0.0356
+epoch 016 | train loss 0.2384 | val acc 0.8984 | val nll 0.2876 | val ece 0.0314
+epoch 017 | train loss 0.2327 | val acc 0.8990 | val nll 0.2842 | val ece 0.0300
+epoch 018 | train loss 0.2260 | val acc 0.8980 | val nll 0.2923 | val ece 0.0339
+epoch 019 | train loss 0.2237 | val acc 0.8962 | val nll 0.2885 | val ece 0.0319
+epoch 020 | train loss 0.2128 | val acc 0.9021 | val nll 0.2733 | val ece 0.0283
+epoch 021 | train loss 0.2076 | val acc 0.9033 | val nll 0.2751 | val ece 0.0287
+epoch 022 | train loss 0.2046 | val acc 0.9007 | val nll 0.2846 | val ece 0.0350
+epoch 023 | train loss 0.2016 | val acc 0.9026 | val nll 0.2715 | val ece 0.0330
+epoch 024 | train loss 0.1969 | val acc 0.9034 | val nll 0.2757 | val ece 0.0331
+epoch 025 | train loss 0.1954 | val acc 0.9035 | val nll 0.2788 | val ece 0.0353
+epoch 026 | train loss 0.1902 | val acc 0.9057 | val nll 0.2709 | val ece 0.0325
+epoch 027 | train loss 0.1854 | val acc 0.9076 | val nll 0.2656 | val ece 0.0354
+epoch 028 | train loss 0.1788 | val acc 0.9084 | val nll 0.2672 | val ece 0.0340
+epoch 029 | train loss 0.1770 | val acc 0.9096 | val nll 0.2656 | val ece 0.0343
+epoch 030 | train loss 0.1721 | val acc 0.9001 | val nll 0.2787 | val ece 0.0325
+epoch 031 | train loss 0.1684 | val acc 0.9089 | val nll 0.2566 | val ece 0.0310
+epoch 032 | train loss 0.1719 | val acc 0.9098 | val nll 0.2567 | val ece 0.0326
+epoch 033 | train loss 0.1647 | val acc 0.9080 | val nll 0.2585 | val ece 0.0302
+epoch 034 | train loss 0.1606 | val acc 0.9112 | val nll 0.2567 | val ece 0.0315
+epoch 035 | train loss 0.1598 | val acc 0.9116 | val nll 0.2584 | val ece 0.0313
+epoch 036 | train loss 0.1588 | val acc 0.9101 | val nll 0.2538 | val ece 0.0335
+epoch 037 | train loss 0.1532 | val acc 0.9115 | val nll 0.2501 | val ece 0.0316
+epoch 038 | train loss 0.1522 | val acc 0.9106 | val nll 0.2600 | val ece 0.0344
+epoch 039 | train loss 0.1507 | val acc 0.9098 | val nll 0.2604 | val ece 0.0327
+epoch 040 | train loss 0.1484 | val acc 0.9102 | val nll 0.2576 | val ece 0.0308
+epoch 041 | train loss 0.1466 | val acc 0.9134 | val nll 0.2509 | val ece 0.0335
+epoch 042 | train loss 0.1437 | val acc 0.9118 | val nll 0.2521 | val ece 0.0326
+early stopping at epoch 042
+final test | best epoch 037 | test acc 0.9088 | test nll 0.2660 | test ece 0.0331
+saved checkpoint: checkpoints/fashion_student_kd_fisher_a0p00003.pt
+saved metrics: results/fashion_student_kd_fisher_a0p00003.csv
+epoch 001 | train loss 1.0970 | val acc 0.7836 | val nll 0.5796 | val ece 0.0453
+epoch 002 | train loss 0.5582 | val acc 0.8369 | val nll 0.4633 | val ece 0.0418
+epoch 003 | train loss 0.4670 | val acc 0.8484 | val nll 0.4328 | val ece 0.0412
+epoch 004 | train loss 0.4174 | val acc 0.8647 | val nll 0.3874 | val ece 0.0364
+epoch 005 | train loss 0.3814 | val acc 0.8709 | val nll 0.3618 | val ece 0.0331
+epoch 006 | train loss 0.3529 | val acc 0.8668 | val nll 0.3702 | val ece 0.0373
+epoch 007 | train loss 0.3405 | val acc 0.8780 | val nll 0.3413 | val ece 0.0327
+epoch 008 | train loss 0.3191 | val acc 0.8814 | val nll 0.3372 | val ece 0.0337
+epoch 009 | train loss 0.3015 | val acc 0.8817 | val nll 0.3392 | val ece 0.0360
+epoch 010 | train loss 0.2943 | val acc 0.8850 | val nll 0.3245 | val ece 0.0327
+epoch 011 | train loss 0.2810 | val acc 0.8900 | val nll 0.3119 | val ece 0.0343
+epoch 012 | train loss 0.2704 | val acc 0.8906 | val nll 0.3118 | val ece 0.0318
+epoch 013 | train loss 0.2618 | val acc 0.8894 | val nll 0.3188 | val ece 0.0356
+epoch 014 | train loss 0.2566 | val acc 0.8957 | val nll 0.2984 | val ece 0.0323
+epoch 015 | train loss 0.2475 | val acc 0.8948 | val nll 0.3007 | val ece 0.0334
+epoch 016 | train loss 0.2389 | val acc 0.8979 | val nll 0.2888 | val ece 0.0334
+epoch 017 | train loss 0.2320 | val acc 0.8995 | val nll 0.2828 | val ece 0.0298
+epoch 018 | train loss 0.2255 | val acc 0.8980 | val nll 0.2906 | val ece 0.0337
+epoch 019 | train loss 0.2232 | val acc 0.8960 | val nll 0.2910 | val ece 0.0331
+epoch 020 | train loss 0.2133 | val acc 0.9023 | val nll 0.2740 | val ece 0.0316
+epoch 021 | train loss 0.2077 | val acc 0.9028 | val nll 0.2751 | val ece 0.0302
+epoch 022 | train loss 0.2045 | val acc 0.9013 | val nll 0.2830 | val ece 0.0367
+epoch 023 | train loss 0.2021 | val acc 0.9039 | val nll 0.2720 | val ece 0.0322
+epoch 024 | train loss 0.1967 | val acc 0.9044 | val nll 0.2768 | val ece 0.0343
+epoch 025 | train loss 0.1962 | val acc 0.9040 | val nll 0.2778 | val ece 0.0352
+epoch 026 | train loss 0.1904 | val acc 0.9057 | val nll 0.2717 | val ece 0.0333
+epoch 027 | train loss 0.1858 | val acc 0.9074 | val nll 0.2656 | val ece 0.0337
+epoch 028 | train loss 0.1791 | val acc 0.9066 | val nll 0.2687 | val ece 0.0338
+epoch 029 | train loss 0.1768 | val acc 0.9085 | val nll 0.2659 | val ece 0.0334
+epoch 030 | train loss 0.1718 | val acc 0.9013 | val nll 0.2796 | val ece 0.0328
+epoch 031 | train loss 0.1682 | val acc 0.9090 | val nll 0.2583 | val ece 0.0316
+epoch 032 | train loss 0.1719 | val acc 0.9093 | val nll 0.2565 | val ece 0.0309
+epoch 033 | train loss 0.1641 | val acc 0.9076 | val nll 0.2597 | val ece 0.0318
+epoch 034 | train loss 0.1599 | val acc 0.9111 | val nll 0.2557 | val ece 0.0313
+epoch 035 | train loss 0.1594 | val acc 0.9107 | val nll 0.2591 | val ece 0.0349
+epoch 036 | train loss 0.1581 | val acc 0.9129 | val nll 0.2533 | val ece 0.0331
+epoch 037 | train loss 0.1524 | val acc 0.9119 | val nll 0.2504 | val ece 0.0319
+epoch 038 | train loss 0.1521 | val acc 0.9099 | val nll 0.2590 | val ece 0.0315
+epoch 039 | train loss 0.1499 | val acc 0.9094 | val nll 0.2620 | val ece 0.0342
+epoch 040 | train loss 0.1476 | val acc 0.9092 | val nll 0.2608 | val ece 0.0314
+epoch 041 | train loss 0.1458 | val acc 0.9142 | val nll 0.2509 | val ece 0.0332
+epoch 042 | train loss 0.1426 | val acc 0.9120 | val nll 0.2521 | val ece 0.0326
+early stopping at epoch 042
+final test | best epoch 037 | test acc 0.9099 | test nll 0.2658 | test ece 0.0310
+saved checkpoint: checkpoints/fashion_student_kd_fisher_a0p0001.pt
+saved metrics: results/fashion_student_kd_fisher_a0p0001.csv
+epoch 001 | train loss 1.0973 | val acc 0.7830 | val nll 0.5803 | val ece 0.0437
+epoch 002 | train loss 0.5596 | val acc 0.8348 | val nll 0.4669 | val ece 0.0427
+epoch 003 | train loss 0.4677 | val acc 0.8503 | val nll 0.4294 | val ece 0.0404
+epoch 004 | train loss 0.4197 | val acc 0.8649 | val nll 0.3870 | val ece 0.0356
+epoch 005 | train loss 0.3800 | val acc 0.8709 | val nll 0.3638 | val ece 0.0351
+epoch 006 | train loss 0.3540 | val acc 0.8710 | val nll 0.3634 | val ece 0.0351
+epoch 007 | train loss 0.3398 | val acc 0.8752 | val nll 0.3506 | val ece 0.0375
+epoch 008 | train loss 0.3222 | val acc 0.8811 | val nll 0.3381 | val ece 0.0334
+epoch 009 | train loss 0.3036 | val acc 0.8818 | val nll 0.3382 | val ece 0.0357
+epoch 010 | train loss 0.2973 | val acc 0.8833 | val nll 0.3288 | val ece 0.0362
+epoch 011 | train loss 0.2814 | val acc 0.8908 | val nll 0.3122 | val ece 0.0341
+epoch 012 | train loss 0.2713 | val acc 0.8899 | val nll 0.3130 | val ece 0.0335
+epoch 013 | train loss 0.2631 | val acc 0.8894 | val nll 0.3185 | val ece 0.0354
+epoch 014 | train loss 0.2571 | val acc 0.8949 | val nll 0.2985 | val ece 0.0331
+epoch 015 | train loss 0.2501 | val acc 0.8964 | val nll 0.2978 | val ece 0.0335
+epoch 016 | train loss 0.2407 | val acc 0.8975 | val nll 0.2891 | val ece 0.0332
+epoch 017 | train loss 0.2347 | val acc 0.8972 | val nll 0.2868 | val ece 0.0297
+epoch 018 | train loss 0.2279 | val acc 0.8991 | val nll 0.2895 | val ece 0.0337
+epoch 019 | train loss 0.2253 | val acc 0.8965 | val nll 0.2914 | val ece 0.0309
+epoch 020 | train loss 0.2149 | val acc 0.9023 | val nll 0.2729 | val ece 0.0296
+epoch 021 | train loss 0.2092 | val acc 0.9026 | val nll 0.2784 | val ece 0.0303
+epoch 022 | train loss 0.2062 | val acc 0.8996 | val nll 0.2875 | val ece 0.0392
+epoch 023 | train loss 0.2037 | val acc 0.9025 | val nll 0.2740 | val ece 0.0314
+epoch 024 | train loss 0.1983 | val acc 0.9058 | val nll 0.2745 | val ece 0.0328
+epoch 025 | train loss 0.1957 | val acc 0.9035 | val nll 0.2785 | val ece 0.0376
+early stopping at epoch 025
+final test | best epoch 020 | test acc 0.8989 | test nll 0.2930 | test ece 0.0329
+saved checkpoint: checkpoints/fashion_student_kd_fisher_a0p0003.pt
+saved metrics: results/fashion_student_kd_fisher_a0p0003.csv
+epoch 001 | train loss 1.0974 | val acc 0.7819 | val nll 0.5824 | val ece 0.0469
+epoch 002 | train loss 0.5595 | val acc 0.8351 | val nll 0.4661 | val ece 0.0431
+epoch 003 | train loss 0.4668 | val acc 0.8501 | val nll 0.4301 | val ece 0.0391
+epoch 004 | train loss 0.4199 | val acc 0.8650 | val nll 0.3869 | val ece 0.0348
+epoch 005 | train loss 0.3802 | val acc 0.8713 | val nll 0.3629 | val ece 0.0330
+epoch 006 | train loss 0.3535 | val acc 0.8716 | val nll 0.3625 | val ece 0.0357
+epoch 007 | train loss 0.3401 | val acc 0.8755 | val nll 0.3490 | val ece 0.0365
+epoch 008 | train loss 0.3216 | val acc 0.8812 | val nll 0.3371 | val ece 0.0336
+epoch 009 | train loss 0.3030 | val acc 0.8828 | val nll 0.3371 | val ece 0.0360
+epoch 010 | train loss 0.2969 | val acc 0.8837 | val nll 0.3279 | val ece 0.0349
+epoch 011 | train loss 0.2809 | val acc 0.8917 | val nll 0.3105 | val ece 0.0333
+epoch 012 | train loss 0.2706 | val acc 0.8907 | val nll 0.3120 | val ece 0.0303
+epoch 013 | train loss 0.2619 | val acc 0.8887 | val nll 0.3199 | val ece 0.0383
+epoch 014 | train loss 0.2569 | val acc 0.8948 | val nll 0.2994 | val ece 0.0333
+epoch 015 | train loss 0.2493 | val acc 0.8955 | val nll 0.2983 | val ece 0.0325
+epoch 016 | train loss 0.2402 | val acc 0.8974 | val nll 0.2890 | val ece 0.0326
+epoch 017 | train loss 0.2335 | val acc 0.8980 | val nll 0.2856 | val ece 0.0324
+epoch 018 | train loss 0.2266 | val acc 0.8996 | val nll 0.2893 | val ece 0.0345
+epoch 019 | train loss 0.2231 | val acc 0.8989 | val nll 0.2890 | val ece 0.0315
+epoch 020 | train loss 0.2144 | val acc 0.9023 | val nll 0.2718 | val ece 0.0313
+epoch 021 | train loss 0.2079 | val acc 0.9034 | val nll 0.2770 | val ece 0.0302
+epoch 022 | train loss 0.2052 | val acc 0.9008 | val nll 0.2855 | val ece 0.0370
+epoch 023 | train loss 0.2021 | val acc 0.9020 | val nll 0.2737 | val ece 0.0334
+epoch 024 | train loss 0.1975 | val acc 0.9050 | val nll 0.2734 | val ece 0.0310
+epoch 025 | train loss 0.1977 | val acc 0.9038 | val nll 0.2748 | val ece 0.0348
+early stopping at epoch 025
+final test | best epoch 020 | test acc 0.8995 | test nll 0.2916 | test ece 0.0331
+saved checkpoint: checkpoints/fashion_student_kd_fisher_a0p001.pt
+saved metrics: results/fashion_student_kd_fisher_a0p001.csv
+epoch 001 | train loss 1.0976 | val acc 0.7818 | val nll 0.5835 | val ece 0.0440
+epoch 002 | train loss 0.5591 | val acc 0.8381 | val nll 0.4638 | val ece 0.0429
+epoch 003 | train loss 0.4673 | val acc 0.8494 | val nll 0.4319 | val ece 0.0400
+epoch 004 | train loss 0.4191 | val acc 0.8650 | val nll 0.3874 | val ece 0.0340
+epoch 005 | train loss 0.3808 | val acc 0.8717 | val nll 0.3632 | val ece 0.0332
+epoch 006 | train loss 0.3539 | val acc 0.8706 | val nll 0.3637 | val ece 0.0346
+epoch 007 | train loss 0.3403 | val acc 0.8754 | val nll 0.3459 | val ece 0.0351
+epoch 008 | train loss 0.3219 | val acc 0.8817 | val nll 0.3372 | val ece 0.0346
+epoch 009 | train loss 0.3025 | val acc 0.8819 | val nll 0.3389 | val ece 0.0372
+epoch 010 | train loss 0.2960 | val acc 0.8843 | val nll 0.3261 | val ece 0.0347
+epoch 011 | train loss 0.2810 | val acc 0.8911 | val nll 0.3115 | val ece 0.0326
+epoch 012 | train loss 0.2705 | val acc 0.8900 | val nll 0.3120 | val ece 0.0322
+epoch 013 | train loss 0.2616 | val acc 0.8890 | val nll 0.3191 | val ece 0.0357
+epoch 014 | train loss 0.2571 | val acc 0.8958 | val nll 0.2989 | val ece 0.0326
+epoch 015 | train loss 0.2487 | val acc 0.8948 | val nll 0.2989 | val ece 0.0325
+epoch 016 | train loss 0.2400 | val acc 0.8967 | val nll 0.2913 | val ece 0.0308
+epoch 017 | train loss 0.2329 | val acc 0.8981 | val nll 0.2857 | val ece 0.0306
+epoch 018 | train loss 0.2263 | val acc 0.9005 | val nll 0.2870 | val ece 0.0332
+epoch 019 | train loss 0.2227 | val acc 0.8970 | val nll 0.2891 | val ece 0.0330
+epoch 020 | train loss 0.2146 | val acc 0.9025 | val nll 0.2725 | val ece 0.0324
+epoch 021 | train loss 0.2078 | val acc 0.9017 | val nll 0.2788 | val ece 0.0309
+epoch 022 | train loss 0.2048 | val acc 0.9016 | val nll 0.2852 | val ece 0.0356
+epoch 023 | train loss 0.2022 | val acc 0.9032 | val nll 0.2730 | val ece 0.0305
+epoch 024 | train loss 0.1971 | val acc 0.9036 | val nll 0.2745 | val ece 0.0325
+epoch 025 | train loss 0.1959 | val acc 0.9041 | val nll 0.2751 | val ece 0.0338
+early stopping at epoch 025
+final test | best epoch 020 | test acc 0.8993 | test nll 0.2927 | test ece 0.0337
+saved checkpoint: checkpoints/fashion_student_kd_fisher_a0p003.pt
+saved metrics: results/fashion_student_kd_fisher_a0p003.csv
+epoch 001 | train loss 1.0977 | val acc 0.7800 | val nll 0.5851 | val ece 0.0451
+epoch 002 | train loss 0.5589 | val acc 0.8360 | val nll 0.4649 | val ece 0.0418
+epoch 003 | train loss 0.4668 | val acc 0.8488 | val nll 0.4323 | val ece 0.0396
+epoch 004 | train loss 0.4190 | val acc 0.8653 | val nll 0.3872 | val ece 0.0341
+epoch 005 | train loss 0.3812 | val acc 0.8711 | val nll 0.3628 | val ece 0.0331
+epoch 006 | train loss 0.3540 | val acc 0.8713 | val nll 0.3631 | val ece 0.0334
+epoch 007 | train loss 0.3400 | val acc 0.8764 | val nll 0.3452 | val ece 0.0344
+epoch 008 | train loss 0.3216 | val acc 0.8817 | val nll 0.3377 | val ece 0.0350
+epoch 009 | train loss 0.3027 | val acc 0.8813 | val nll 0.3388 | val ece 0.0378
+epoch 010 | train loss 0.2955 | val acc 0.8845 | val nll 0.3262 | val ece 0.0354
+epoch 011 | train loss 0.2807 | val acc 0.8905 | val nll 0.3117 | val ece 0.0336
+epoch 012 | train loss 0.2705 | val acc 0.8899 | val nll 0.3116 | val ece 0.0330
+epoch 013 | train loss 0.2613 | val acc 0.8889 | val nll 0.3212 | val ece 0.0355
+epoch 014 | train loss 0.2576 | val acc 0.8956 | val nll 0.2997 | val ece 0.0331
+epoch 015 | train loss 0.2486 | val acc 0.8943 | val nll 0.2991 | val ece 0.0340
+epoch 016 | train loss 0.2398 | val acc 0.8968 | val nll 0.2903 | val ece 0.0315
+epoch 017 | train loss 0.2328 | val acc 0.8970 | val nll 0.2866 | val ece 0.0316
+epoch 018 | train loss 0.2267 | val acc 0.8996 | val nll 0.2882 | val ece 0.0321
+epoch 019 | train loss 0.2227 | val acc 0.8978 | val nll 0.2898 | val ece 0.0321
+epoch 020 | train loss 0.2147 | val acc 0.9028 | val nll 0.2731 | val ece 0.0328
+epoch 021 | train loss 0.2078 | val acc 0.9018 | val nll 0.2787 | val ece 0.0307
+epoch 022 | train loss 0.2053 | val acc 0.9007 | val nll 0.2829 | val ece 0.0349
+epoch 023 | train loss 0.2024 | val acc 0.9033 | val nll 0.2732 | val ece 0.0324
+epoch 024 | train loss 0.1972 | val acc 0.9042 | val nll 0.2747 | val ece 0.0320
+epoch 025 | train loss 0.1970 | val acc 0.9051 | val nll 0.2739 | val ece 0.0335
+early stopping at epoch 025
+final test | best epoch 020 | test acc 0.8991 | test nll 0.2937 | test ece 0.0333
+saved checkpoint: checkpoints/fashion_student_kd_fisher_a0p005.pt
+saved metrics: results/fashion_student_kd_fisher_a0p005.csv
+epoch 001 | train loss 1.0979 | val acc 0.7814 | val nll 0.5828 | val ece 0.0456
+epoch 002 | train loss 0.5597 | val acc 0.8352 | val nll 0.4657 | val ece 0.0413
+epoch 003 | train loss 0.4673 | val acc 0.8492 | val nll 0.4308 | val ece 0.0374
+epoch 004 | train loss 0.4198 | val acc 0.8652 | val nll 0.3874 | val ece 0.0351
+epoch 005 | train loss 0.3805 | val acc 0.8713 | val nll 0.3633 | val ece 0.0319
+epoch 006 | train loss 0.3539 | val acc 0.8708 | val nll 0.3637 | val ece 0.0350
+epoch 007 | train loss 0.3401 | val acc 0.8753 | val nll 0.3498 | val ece 0.0346
+epoch 008 | train loss 0.3219 | val acc 0.8808 | val nll 0.3379 | val ece 0.0333
+epoch 009 | train loss 0.3037 | val acc 0.8810 | val nll 0.3388 | val ece 0.0359
+epoch 010 | train loss 0.2964 | val acc 0.8837 | val nll 0.3265 | val ece 0.0363
+epoch 011 | train loss 0.2819 | val acc 0.8911 | val nll 0.3115 | val ece 0.0341
+epoch 012 | train loss 0.2713 | val acc 0.8910 | val nll 0.3125 | val ece 0.0317
+epoch 013 | train loss 0.2632 | val acc 0.8894 | val nll 0.3187 | val ece 0.0367
+epoch 014 | train loss 0.2571 | val acc 0.8952 | val nll 0.2983 | val ece 0.0327
+epoch 015 | train loss 0.2501 | val acc 0.8959 | val nll 0.2991 | val ece 0.0334
+epoch 016 | train loss 0.2404 | val acc 0.8986 | val nll 0.2854 | val ece 0.0314
+epoch 017 | train loss 0.2341 | val acc 0.8985 | val nll 0.2851 | val ece 0.0322
+epoch 018 | train loss 0.2277 | val acc 0.8988 | val nll 0.2906 | val ece 0.0318
+epoch 019 | train loss 0.2249 | val acc 0.8983 | val nll 0.2902 | val ece 0.0293
+epoch 020 | train loss 0.2152 | val acc 0.9016 | val nll 0.2742 | val ece 0.0307
+epoch 021 | train loss 0.2102 | val acc 0.9038 | val nll 0.2752 | val ece 0.0278
+epoch 022 | train loss 0.2070 | val acc 0.9001 | val nll 0.2856 | val ece 0.0370
+epoch 023 | train loss 0.2039 | val acc 0.9037 | val nll 0.2716 | val ece 0.0293
+epoch 024 | train loss 0.1981 | val acc 0.9061 | val nll 0.2736 | val ece 0.0324
+epoch 025 | train loss 0.1970 | val acc 0.9055 | val nll 0.2759 | val ece 0.0342
+epoch 026 | train loss 0.1918 | val acc 0.9060 | val nll 0.2693 | val ece 0.0290
+epoch 027 | train loss 0.1875 | val acc 0.9073 | val nll 0.2684 | val ece 0.0335
+epoch 028 | train loss 0.1808 | val acc 0.9067 | val nll 0.2680 | val ece 0.0335
+epoch 029 | train loss 0.1784 | val acc 0.9086 | val nll 0.2664 | val ece 0.0330
+epoch 030 | train loss 0.1746 | val acc 0.8989 | val nll 0.2829 | val ece 0.0335
+epoch 031 | train loss 0.1698 | val acc 0.9089 | val nll 0.2563 | val ece 0.0315
+epoch 032 | train loss 0.1737 | val acc 0.9104 | val nll 0.2565 | val ece 0.0313
+epoch 033 | train loss 0.1663 | val acc 0.9069 | val nll 0.2595 | val ece 0.0314
+epoch 034 | train loss 0.1627 | val acc 0.9108 | val nll 0.2566 | val ece 0.0320
+epoch 035 | train loss 0.1615 | val acc 0.9105 | val nll 0.2618 | val ece 0.0337
+epoch 036 | train loss 0.1587 | val acc 0.9121 | val nll 0.2550 | val ece 0.0318
+epoch 037 | train loss 0.1545 | val acc 0.9111 | val nll 0.2499 | val ece 0.0299
+epoch 038 | train loss 0.1547 | val acc 0.9092 | val nll 0.2592 | val ece 0.0327
+epoch 039 | train loss 0.1520 | val acc 0.9104 | val nll 0.2571 | val ece 0.0323
+epoch 040 | train loss 0.1494 | val acc 0.9116 | val nll 0.2537 | val ece 0.0320
+epoch 041 | train loss 0.1485 | val acc 0.9134 | val nll 0.2507 | val ece 0.0332
+epoch 042 | train loss 0.1450 | val acc 0.9121 | val nll 0.2516 | val ece 0.0311
+early stopping at epoch 042
+final test | best epoch 037 | test acc 0.9086 | test nll 0.2665 | test ece 0.0315
+saved checkpoint: checkpoints/fashion_student_kd_fisher_a0p01.pt
+saved metrics: results/fashion_student_kd_fisher_a0p01.csv
+
+================================================================================
+Running Fashion Fisher sweep: alpha=1e-05
+================================================================================
+
+================================================================================
+Running Fashion Fisher sweep: alpha=3e-05
+================================================================================
+
+================================================================================
+Running Fashion Fisher sweep: alpha=0.0001
+================================================================================
+
+================================================================================
+Running Fashion Fisher sweep: alpha=0.0003
+================================================================================
+
+================================================================================
+Running Fashion Fisher sweep: alpha=0.001
+================================================================================
+
+================================================================================
+Running Fashion Fisher sweep: alpha=0.003
+================================================================================
+
+================================================================================
+Running Fashion Fisher sweep: alpha=0.005
+================================================================================
+
+================================================================================
+Running Fashion Fisher sweep: alpha=0.01
+================================================================================
+
+FASHION FISHER SWEEP SUMMARY
+alpha      | best_epoch | best_val_acc   | best_val_nll   | best_val_ece   | best_val_fisher_mismatch | test_acc   | test_nll   | test_ece   | test_fisher_mismatch  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1e-05      | 37         | 0.913121       | 0.248929       | 0.031134       | 0.012038                 | 0.909605   | 0.265439   | 0.033772   | 0.011858              
+0.01       | 37         | 0.911144       | 0.249866       | 0.029925       | 0.012108                 | 0.908617   | 0.266547   | 0.031456   | 0.011913              
+3e-05      | 37         | 0.911470       | 0.250128       | 0.031633       | 0.012123                 | 0.908760   | 0.265969   | 0.033080   | 0.012023              
+0.0001     | 37         | 0.911900       | 0.250379       | 0.031905       | 0.012105                 | 0.909909   | 0.265755   | 0.031029   | 0.012010              
+0.001      | 20         | 0.902262       | 0.271826       | 0.031252       | 0.014352                 | 0.899517   | 0.291553   | 0.033113   | 0.014579              
+0.003      | 20         | 0.902518       | 0.272458       | 0.032425       | 0.014562                 | 0.899299   | 0.292682   | 0.033739   | 0.014846              
+0.0003     | 20         | 0.902286       | 0.272923       | 0.029562       | 0.014284                 | 0.898909   | 0.293013   | 0.032942   | 0.014638              
+0.005      | 20         | 0.902820       | 0.273117       | 0.032761       | 0.014760                 | 0.899081   | 0.293673   | 0.033294   | 0.015035              
+
+saved Fashion Fisher sweep summary: results\fashion_fisher_sweep_summary.csv
+
+Best by validation NLL: alpha=1e-05, val_nll=0.248929, test_nll=0.265439, test_acc=0.909605
+Best by validation Fisher mismatch: alpha=1e-05, val_fisher=0.012038, test_fisher=0.011858, test_nll=0.265439
