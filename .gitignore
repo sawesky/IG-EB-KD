@@ -6,3 +6,4 @@ results/*.json
 data/
 notes/
 configs/generated/
+logs/
