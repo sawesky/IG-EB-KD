@@ -8,6 +8,9 @@ def get_dataset_and_stats(dataset_name):
 
     if dataset_name == "fashion_mnist":
         return datasets.FashionMNIST, (0.2860,), (0.3530,)
+    
+    if dataset_name == "cifar10":
+        return datasets.CIFAR10, (0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)
 
     raise ValueError(f"Unknown dataset: {dataset_name}")
 

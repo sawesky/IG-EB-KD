@@ -1,0 +1,36 @@
+experiment_name: cifar_student_ce
+mode: ce
+seed: 42
+
+data:
+  dataset: cifar10
+  root: data
+  batch_size: 256
+  num_workers: 0
+  val_size: 0.2
+
+model:
+  name: cifar_cnn
+  channels1: 16
+  channels2: 32
+  channels3: 64
+  hidden: 128
+
+train:
+  epochs: 100
+  patience: 5
+  lr: 0.001
+  weight_decay: 0.0001
+
+extensions:
+  fisher_alpha: 0.0
+  energy_beta: 0.0
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/cifar_student_ce.pt
+  metrics_path: results/cifar_student_ce.csv

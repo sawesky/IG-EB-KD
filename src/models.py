@@ -27,6 +27,38 @@ class LeNet(nn.Module):
         if return_features:
             return logits, h
         return logits
+    
+class CifarCNN(nn.Module):
+    def __init__(self, channels1=16, channels2=32, channels3=64, hidden=128, num_classes=10):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(3, channels1, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(channels1, channels2, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(channels2, channels3, kernel_size=3, padding=1)
+
+        # CIFAR: 32x32
+        # after pool after conv2: 16x16
+        # after pool after conv3: 8x8
+        self.fc1 = nn.Linear(channels3 * 8 * 8, hidden)
+        self.fc2 = nn.Linear(hidden, num_classes)
+
+    def forward(self, x, return_features=False):
+        x = F.relu(self.conv1(x))
+
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, 2)
+
+        x = F.relu(self.conv3(x))
+        x = F.max_pool2d(x, 2)
+
+        x = torch.flatten(x, 1)
+        h = F.relu(self.fc1(x))
+        logits = self.fc2(h)
+
+        if return_features:
+            return logits, h
+
+        return logits
 
 
 def make_model(model_cfg):
@@ -38,5 +70,12 @@ def make_model(model_cfg):
             channels2=model_cfg["channels2"],
             hidden=model_cfg["hidden"],
         )
+    if name == "cifar_cnn":
+        return CifarCNN(
+            channels1=model_cfg["channels1"],
+            channels2=model_cfg["channels2"],
+            channels3=model_cfg["channels3"],
+            hidden=model_cfg["hidden"],
+    )
 
     raise ValueError(f"Unknown model name: {name}")

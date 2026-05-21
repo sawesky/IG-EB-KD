@@ -1,0 +1,49 @@
+experiment_name: cifar_student_kd_energy
+mode: kd
+seed: 42
+
+data:
+  dataset: cifar10
+  root: data
+  batch_size: 256
+  num_workers: 0
+  val_size: 0.2
+
+model:
+  name: cifar_cnn
+  channels1: 16
+  channels2: 32
+  channels3: 64
+  hidden: 128
+
+teacher:
+  checkpoint_path: checkpoints/cifar_teacher.pt
+  model:
+    name: cifar_cnn
+    channels1: 32
+    channels2: 64
+    channels3: 128
+    hidden: 256
+
+train:
+  epochs: 100
+  patience: 5
+  lr: 0.001
+  weight_decay: 0.0001
+
+kd:
+  temperature: 4.0
+  lambda_kd: 0.5
+
+extensions:
+  fisher_alpha: 0.0
+  energy_beta: 0.005
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/cifar_student_kd_energy.pt
+  metrics_path: results/cifar_student_kd_energy.csv
