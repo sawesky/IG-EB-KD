@@ -1,0 +1,34 @@
+experiment_name: cifar_resnet20_student_ce
+mode: ce
+seed: 42
+
+data:
+  dataset: cifar10
+  root: data
+  batch_size: 256
+  num_workers: 0
+  val_size: 0.2
+
+model:
+  name: cifar_resnet
+  depth: 20
+  base_channels: 16
+
+train:
+  epochs: 2
+  patience: 2
+  lr: 0.001
+  weight_decay: 0.0001
+
+extensions:
+  fisher_alpha: 0.0
+  energy_beta: 0.0
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/cifar_resnet20_student_ce.pt
+  metrics_path: results/cifar_resnet20_student_ce.csv

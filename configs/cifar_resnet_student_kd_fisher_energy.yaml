@@ -1,0 +1,45 @@
+experiment_name: cifar_resnet56_to_resnet20_student_kd_fisher_energy
+mode: kd
+seed: 42
+
+data:
+  dataset: cifar10
+  root: data
+  batch_size: 256
+  num_workers: 0
+  val_size: 0.2
+
+model:
+  name: cifar_resnet
+  depth: 20
+  base_channels: 16
+
+teacher:
+  checkpoint_path: checkpoints/cifar_resnet56_teacher.pt
+  model:
+    name: cifar_resnet
+    depth: 56
+    base_channels: 16
+
+train:
+  epochs: 2
+  patience: 2
+  lr: 0.001
+  weight_decay: 0.0001
+
+kd:
+  temperature: 4.0
+  lambda_kd: 0.5
+
+extensions:
+  fisher_alpha: 0.01
+  energy_beta: 0.0005
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/cifar_resnet20_student_kd_fisher_energy.pt
+  metrics_path: results/cifar_resnet20_student_kd_fisher_energy.csv
