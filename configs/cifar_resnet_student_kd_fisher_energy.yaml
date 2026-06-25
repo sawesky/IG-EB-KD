@@ -6,7 +6,7 @@ data:
   dataset: cifar10
   root: data
   batch_size: 256
-  num_workers: 0
+  num_workers: 2
   val_size: 0.2
 
 model:
@@ -23,8 +23,8 @@ teacher:
 
 train:
   epochs: 100
-  patience: 5
-  lr: 0.001
+  patience: 7
+  lr: 0.0005
   weight_decay: 0.0001
 
 kd:
