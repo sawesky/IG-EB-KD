@@ -3,9 +3,9 @@ import sys
 
 
 COMMANDS = [
-    #["src/train.py", "--config", "configs/cifar_resnet_teacher.yaml"],
-    #["src/train.py", "--config", "configs/cifar_resnet_student_ce.yaml"],
-    #["src/train.py", "--config", "configs/cifar_resnet_student_kd.yaml"],
+    ["src/train.py", "--config", "configs/cifar_resnet_teacher.yaml"],
+    ["src/train.py", "--config", "configs/cifar_resnet_student_ce.yaml"],
+    ["src/train.py", "--config", "configs/cifar_resnet_student_kd.yaml"],
     ["src/train.py", "--config", "configs/cifar_resnet_student_kd_fisher.yaml"],
     ["src/train.py", "--config", "configs/cifar_resnet_student_kd_energy.yaml"],
     ["src/train.py", "--config", "configs/cifar_resnet_student_kd_fisher_energy.yaml"],
