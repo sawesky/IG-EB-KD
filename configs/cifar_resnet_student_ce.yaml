@@ -15,8 +15,8 @@ model:
   base_channels: 16
 
 train:
-  epochs: 2
-  patience: 2
+  epochs: 100
+  patience: 5
   lr: 0.001
   weight_decay: 0.0001
 
