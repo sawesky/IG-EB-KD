@@ -1,6 +1,7 @@
 import torch
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset
 from torchvision import datasets, transforms
+
 
 def get_dataset_and_stats(dataset_name):
     if dataset_name == "mnist":
@@ -8,33 +9,63 @@ def get_dataset_and_stats(dataset_name):
 
     if dataset_name == "fashion_mnist":
         return datasets.FashionMNIST, (0.2860,), (0.3530,)
-    
+
     if dataset_name == "cifar10":
         return datasets.CIFAR10, (0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)
 
     raise ValueError(f"Unknown dataset: {dataset_name}")
 
 
-def get_image_loaders(dataset_name="mnist", root="data", batch_size=128, val_size=0.2, num_workers=2, seed=42):
-
+def get_image_loaders(
+    dataset_name="mnist",
+    root="data",
+    batch_size=128,
+    val_size=0.2,
+    num_workers=2,
+    seed=42,
+    augment=None,
+):
     DatasetClass, mean, std = get_dataset_and_stats(dataset_name)
-    transform = transforms.Compose([
+
+    if augment is None:
+        augment = dataset_name == "cifar10"
+
+    eval_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean, std),
     ])
 
-    full_train_dataset = DatasetClass(root=root, train=True, download=True, transform=transform)
-    test_set = DatasetClass(root=root, train=False, download=True, transform=transform)
+    if dataset_name == "cifar10" and augment:
+        train_transform = transforms.Compose([
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std),
+        ])
+    else:
+        train_transform = eval_transform
+
+    # Same training images, two different transform views:
+    # one augmented for training, one clean for validation.
+    full_train_aug = DatasetClass(root=root, train=True, download=True, transform=train_transform)
+    full_train_eval = DatasetClass(root=root, train=True, download=True, transform=eval_transform)
+
+    test_set = DatasetClass(root=root, train=False, download=True, transform=eval_transform)
 
     generator = torch.Generator().manual_seed(seed)
 
     train_size = 1 - val_size
 
-    train_dataset, val_dataset = random_split(
-        full_train_dataset,
+    split_source = DatasetClass(root=root, train=True, download=True, transform=eval_transform)
+
+    train_split, val_split = random_split(
+        split_source,
         [train_size, val_size],
         generator=generator,
     )
+
+    train_dataset = Subset(full_train_aug, train_split.indices)
+    val_dataset = Subset(full_train_eval, val_split.indices)
 
     train_loader = DataLoader(
         train_dataset,
