@@ -1,0 +1,50 @@
+experiment_name: cifar_wrn16_2_student_kd
+seed: 42
+
+data:
+  dataset: cifar10
+  root: data
+  batch_size: 256
+  val_size: 0.2
+  num_workers: 2
+
+model:
+  name: cifar_wrn
+  depth: 16
+  widen_factor: 2
+  dropout_rate: 0.0
+  num_classes: 10
+
+mode: kd
+
+teacher:
+  checkpoint_path: checkpoints/cifar_wrn40_2_teacher.pt
+  model:
+    name: cifar_wrn
+    depth: 40
+    widen_factor: 2
+    dropout_rate: 0.0
+    num_classes: 10
+
+kd:
+  temperature: 1.0
+  lambda_kd: 0.6
+
+extensions:
+  fisher_alpha: 0.01
+  energy_beta: 0.01
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+
+train:
+  epochs: 200
+  patience: 10
+  lr: 0.001
+  weight_decay: 0.0001
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/cifar_wrn16_2_student_kd.pt
+  metrics_path: results/cifar_wrn16_2_student_kd.csv

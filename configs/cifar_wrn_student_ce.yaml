@@ -1,0 +1,43 @@
+experiment_name: cifar_wrn16_2_student_ce
+seed: 42
+
+data:
+  dataset: cifar10
+  root: data
+  batch_size: 256
+  val_size: 0.2
+  num_workers: 2
+
+model:
+  name: cifar_wrn
+  depth: 16
+  widen_factor: 2
+  dropout_rate: 0.0
+  num_classes: 10
+
+mode: ce
+
+teacher: null
+
+kd:
+  temperature: 1.0
+  lambda_kd: 0.0
+
+extensions:
+  fisher_alpha: 0.0
+  energy_beta: 0.0
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+
+train:
+  epochs: 200
+  patience: 10
+  lr: 0.001
+  weight_decay: 0.0001
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/cifar_wrn16_2_student_ce.pt
+  metrics_path: results/cifar_wrn16_2_student_ce.csv
