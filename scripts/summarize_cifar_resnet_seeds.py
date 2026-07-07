@@ -161,9 +161,9 @@ def main():
         print(
             f"{row['method']} | "
             f"{row['n_seeds']} | "
-            f"{float(row['test_acc_mean']):.4f}±{float(row['test_acc_std']):.4f} | "
-            f"{float(row['test_nll_mean']):.4f}±{float(row['test_nll_std']):.4f} | "
-            f"{float(row['test_ece_mean']):.4f}±{float(row['test_ece_std']):.4f}"
+            f"{float(row['test_acc_mean']):.4f}_{float(row['test_acc_std']):.4f} | "
+            f"{float(row['test_nll_mean']):.4f}_{float(row['test_nll_std']):.4f} | "
+            f"{float(row['test_ece_mean']):.4f}_{float(row['test_ece_std']):.4f}"
         )
 
     print(f"\nsaved summary: {OUT_PATH}")
