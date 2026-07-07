@@ -3,7 +3,7 @@ from pathlib import Path
 from statistics import mean, stdev
 
 
-SEEDS = [42, 43, 44]
+SEEDS = [42, 43, 44, 45, 46]
 
 TEACHER_PATH = Path("results/cifar_resnet56_teacher.csv")
 
