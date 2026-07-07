@@ -1,0 +1,140 @@
+import csv
+from pathlib import Path
+from statistics import mean, stdev
+
+
+SEEDS = [42, 43, 44]
+
+RUNS = [
+    ("ResNet-20 CE", "cifar_resnet20_student_ce"),
+    ("ResNet-20 KD", "cifar_resnet20_student_kd"),
+    ("ResNet-20 KD + Fisher", "cifar_resnet20_student_kd_fisher"),
+    ("ResNet-20 KD + Energy", "cifar_resnet20_student_kd_energy"),
+    ("ResNet-20 KD + Fisher + Energy", "cifar_resnet20_student_kd_fisher_energy"),
+]
+
+RESULT_DIR = Path("results/seeds")
+OUT_PATH = Path("results/cifar_resnet_seeds_summary.csv")
+
+
+def read_rows(path):
+    with open(path, "r", newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def get_float(row, key, default=0.0):
+    value = row.get(key, "")
+    if value == "" or value is None:
+        return default
+    return float(value)
+
+
+def summarize_file(path):
+    rows = read_rows(path)
+    test_rows = [row for row in rows if row.get("phase") == "test"]
+
+    if not test_rows:
+        raise RuntimeError(f"No test row found in {path}")
+
+    test_row = test_rows[-1]
+
+    return {
+        "best_epoch": int(float(test_row.get("best_epoch", 0))),
+        "test_acc": get_float(test_row, "test_acc"),
+        "test_nll": get_float(test_row, "test_nll"),
+        "test_ece": get_float(test_row, "test_ece"),
+        "test_ts_kl": get_float(test_row, "test_teacher_student_kl"),
+        "test_fisher_mismatch": get_float(test_row, "test_fisher_mismatch"),
+        "test_energy_mismatch": get_float(test_row, "test_energy_mismatch"),
+    }
+
+
+def mean_std(values):
+    if len(values) == 1:
+        return mean(values), 0.0
+    return mean(values), stdev(values)
+
+
+def main():
+    summary_rows = []
+
+    for method, base_name in RUNS:
+        seed_rows = []
+
+        for seed in SEEDS:
+            path = RESULT_DIR / f"{base_name}_seed{seed}.csv"
+
+            if not path.exists():
+                print(f"missing: {path}")
+                continue
+
+            row = summarize_file(path)
+            row["seed"] = seed
+            seed_rows.append(row)
+
+        if not seed_rows:
+            continue
+
+        out = {
+            "method": method,
+            "n_seeds": len(seed_rows),
+        }
+
+        metrics = [
+            "test_acc",
+            "test_nll",
+            "test_ece",
+            "test_ts_kl",
+            "test_fisher_mismatch",
+            "test_energy_mismatch",
+        ]
+
+        for metric in metrics:
+            values = [row[metric] for row in seed_rows]
+            m, s = mean_std(values)
+            out[f"{metric}_mean"] = m
+            out[f"{metric}_std"] = s
+
+        summary_rows.append(out)
+
+    fieldnames = [
+        "method",
+        "n_seeds",
+        "test_acc_mean",
+        "test_acc_std",
+        "test_nll_mean",
+        "test_nll_std",
+        "test_ece_mean",
+        "test_ece_std",
+        "test_ts_kl_mean",
+        "test_ts_kl_std",
+        "test_fisher_mismatch_mean",
+        "test_fisher_mismatch_std",
+        "test_energy_mismatch_mean",
+        "test_energy_mismatch_std",
+    ]
+
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(OUT_PATH, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(summary_rows)
+
+    print("\nCIFAR-10 ResNet final multi-seed summary")
+    print("method | acc mean±std | nll mean±std | ece mean±std")
+    print("-" * 80)
+
+    for row in summary_rows:
+        print(
+            f"{row['method']} | "
+            f"{row['test_acc_mean']:.4f}±{row['test_acc_std']:.4f} | "
+            f"{row['test_nll_mean']:.4f}±{row['test_nll_std']:.4f} | "
+            f"{row['test_ece_mean']:.4f}±{row['test_ece_std']:.4f}"
+        )
+
+    print(f"\nsaved summary: {OUT_PATH}")
+
+
+if __name__ == "__main__":
+    main()
