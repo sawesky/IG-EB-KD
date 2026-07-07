@@ -5,6 +5,8 @@ from statistics import mean, stdev
 
 SEEDS = [42, 43, 44]
 
+TEACHER_PATH = Path("results/cifar_resnet56_teacher.csv")
+
 RUNS = [
     ("ResNet-20 CE", "cifar_resnet20_student_ce"),
     ("ResNet-20 KD", "cifar_resnet20_student_kd"),
@@ -55,8 +57,41 @@ def mean_std(values):
     return mean(values), stdev(values)
 
 
+def add_metric_summary(out, seed_rows, metric):
+    values = [row[metric] for row in seed_rows]
+    m, s = mean_std(values)
+    out[f"{metric}_mean"] = m
+    out[f"{metric}_std"] = s
+
+
+def make_teacher_row():
+    row = summarize_file(TEACHER_PATH)
+
+    return {
+        "method": "ResNet-56 teacher",
+        "n_seeds": 1,
+        "test_acc_mean": row["test_acc"],
+        "test_acc_std": 0.0,
+        "test_nll_mean": row["test_nll"],
+        "test_nll_std": 0.0,
+        "test_ece_mean": row["test_ece"],
+        "test_ece_std": 0.0,
+        "test_ts_kl_mean": "",
+        "test_ts_kl_std": "",
+        "test_fisher_mismatch_mean": "",
+        "test_fisher_mismatch_std": "",
+        "test_energy_mismatch_mean": "",
+        "test_energy_mismatch_std": "",
+    }
+
+
 def main():
     summary_rows = []
+
+    if TEACHER_PATH.exists():
+        summary_rows.append(make_teacher_row())
+    else:
+        print(f"missing teacher file: {TEACHER_PATH}")
 
     for method, base_name in RUNS:
         seed_rows = []
@@ -90,10 +125,7 @@ def main():
         ]
 
         for metric in metrics:
-            values = [row[metric] for row in seed_rows]
-            m, s = mean_std(values)
-            out[f"{metric}_mean"] = m
-            out[f"{metric}_std"] = s
+            add_metric_summary(out, seed_rows, metric)
 
         summary_rows.append(out)
 
@@ -121,16 +153,17 @@ def main():
         writer.writeheader()
         writer.writerows(summary_rows)
 
-    print("\nCIFAR-10 ResNet final multi-seed summary")
-    print("method | acc mean±std | nll mean±std | ece mean±std")
-    print("-" * 80)
+    print("\nCIFAR-10 ResNet multi-seed summary")
+    print("method | n | acc mean std | nll mean std | ece mean std")
+    print("-" * 90)
 
     for row in summary_rows:
         print(
             f"{row['method']} | "
-            f"{row['test_acc_mean']:.4f}±{row['test_acc_std']:.4f} | "
-            f"{row['test_nll_mean']:.4f}±{row['test_nll_std']:.4f} | "
-            f"{row['test_ece_mean']:.4f}±{row['test_ece_std']:.4f}"
+            f"{row['n_seeds']} | "
+            f"{float(row['test_acc_mean']):.4f}±{float(row['test_acc_std']):.4f} | "
+            f"{float(row['test_nll_mean']):.4f}±{float(row['test_nll_std']):.4f} | "
+            f"{float(row['test_ece_mean']):.4f}±{float(row['test_ece_std']):.4f}"
         )
 
     print(f"\nsaved summary: {OUT_PATH}")

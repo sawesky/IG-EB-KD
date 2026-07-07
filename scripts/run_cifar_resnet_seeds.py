@@ -6,7 +6,7 @@ import sys
 import yaml
 
 
-SEEDS = [42, 43, 44]
+SEEDS = [42, 43, 44, 45, 46]
 
 RUNS = [
     {
