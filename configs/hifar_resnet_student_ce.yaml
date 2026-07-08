@@ -7,7 +7,7 @@ data:
   root: data
   batch_size: 256
   num_workers: 2
-  val_size: 0.2
+  val_size: 0.1
 
 model:
   name: cifar_resnet
@@ -18,7 +18,7 @@ model:
 train:
   epochs: 300
   patience: 20
-  lr: 0.0005
+  lr: 0.0003
   weight_decay: 0.0005
 
 extensions:
