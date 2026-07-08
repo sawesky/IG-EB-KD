@@ -24,13 +24,13 @@ teacher:
     num_classes: 100
 
 train:
-  epochs: 300
+  epochs: 200
   patience: 30
-  lr: 0.001
-  weight_decay: 0.0001
+  lr: 0.0005
+  weight_decay: 0.0005
   scheduler:
     name: cosine
-    t_max: 300
+    t_max: 200
     min_lr: 0.00001
 
 kd:
