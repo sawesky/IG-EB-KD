@@ -376,6 +376,7 @@ def make_model(model_cfg):
             channels1=model_cfg["channels1"],
             channels2=model_cfg["channels2"],
             hidden=model_cfg["hidden"],
+            num_classes=model_cfg.get("num_classes", 10),
         )
 
     if name == "cifar_cnn":
@@ -384,6 +385,7 @@ def make_model(model_cfg):
             channels2=model_cfg["channels2"],
             channels3=model_cfg["channels3"],
             hidden=model_cfg["hidden"],
+            num_classes=model_cfg.get("num_classes", 10),
         )
 
     if name == "cifar_resnet":

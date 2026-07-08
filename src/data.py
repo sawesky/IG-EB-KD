@@ -13,6 +13,9 @@ def get_dataset_and_stats(dataset_name):
     if dataset_name == "cifar10":
         return datasets.CIFAR10, (0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)
 
+    if dataset_name == "cifar100":
+        return datasets.CIFAR100, (0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)
+
     raise ValueError(f"Unknown dataset: {dataset_name}")
 
 
@@ -28,14 +31,14 @@ def get_image_loaders(
     DatasetClass, mean, std = get_dataset_and_stats(dataset_name)
 
     if augment is None:
-        augment = dataset_name == "cifar10"
+        augment = dataset_name in ["cifar10", "cifar100"]
 
     eval_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean, std),
     ])
 
-    if dataset_name == "cifar10" and augment:
+    if dataset_name in ["cifar10", "cifar100"] and augment:
         train_transform = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
