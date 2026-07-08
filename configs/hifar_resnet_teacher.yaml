@@ -21,9 +21,9 @@ train:
   lr: 0.0005
   weight_decay: 0.0005
   scheduler:
-    name: cosine
-    t_max: 100
-    min_lr: 0.00001
+    name: multistep
+    milestones: [60, 90, 120]
+    gamma: 0.2
 
 extensions:
   fisher_alpha: 0.0

@@ -162,21 +162,34 @@ def make_scheduler(optimizer, cfg):
 
     if isinstance(scheduler_cfg, str):
         scheduler_name = scheduler_cfg
-        scheduler_t_max = cfg["train"].get("scheduler_t_max", cfg["train"]["epochs"])
-        min_lr = cfg["train"].get("min_lr", 0.0)
     else:
         scheduler_name = scheduler_cfg.get("name", "none")
-        scheduler_t_max = scheduler_cfg.get("t_max", cfg["train"]["epochs"])
-        min_lr = scheduler_cfg.get("min_lr", cfg["train"].get("min_lr", 0.0))
 
     if scheduler_name == "none":
         return None
 
     if scheduler_name == "cosine":
+        if isinstance(scheduler_cfg, str):
+            t_max = cfg["train"].get("scheduler_t_max", cfg["train"]["epochs"])
+            min_lr = cfg["train"].get("min_lr", 0.0)
+        else:
+            t_max = scheduler_cfg.get("t_max", cfg["train"]["epochs"])
+            min_lr = scheduler_cfg.get("min_lr", cfg["train"].get("min_lr", 0.0))
+
         return torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer,
-            T_max=scheduler_t_max,
+            T_max=t_max,
             eta_min=min_lr,
+        )
+
+    if scheduler_name == "multistep":
+        milestones = scheduler_cfg.get("milestones", [60, 90, 120])
+        gamma = scheduler_cfg.get("gamma", 0.2)
+
+        return torch.optim.lr_scheduler.MultiStepLR(
+            optimizer,
+            milestones=milestones,
+            gamma=gamma,
         )
 
     raise ValueError(f"Unknown scheduler: {scheduler_name}")
