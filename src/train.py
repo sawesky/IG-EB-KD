@@ -154,6 +154,33 @@ def evaluate(model, teacher, loader, cfg, device, epoch):
         "energy_mismatch": total_energy_mismatch / n_batches if teacher is not None else 0.0,
     }
 
+def make_scheduler(optimizer, cfg):
+    scheduler_cfg = cfg["train"].get("scheduler", None)
+
+    if scheduler_cfg is None or scheduler_cfg == "none":
+        return None
+
+    if isinstance(scheduler_cfg, str):
+        scheduler_name = scheduler_cfg
+        scheduler_t_max = cfg["train"].get("scheduler_t_max", cfg["train"]["epochs"])
+        min_lr = cfg["train"].get("min_lr", 0.0)
+    else:
+        scheduler_name = scheduler_cfg.get("name", "none")
+        scheduler_t_max = scheduler_cfg.get("t_max", cfg["train"]["epochs"])
+        min_lr = scheduler_cfg.get("min_lr", cfg["train"].get("min_lr", 0.0))
+
+    if scheduler_name == "none":
+        return None
+
+    if scheduler_name == "cosine":
+        return torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=scheduler_t_max,
+            eta_min=min_lr,
+        )
+
+    raise ValueError(f"Unknown scheduler: {scheduler_name}")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -191,6 +218,8 @@ def main():
         lr=cfg["train"]["lr"],
         weight_decay=cfg["train"]["weight_decay"],
     )
+    
+    scheduler = make_scheduler(optimizer, cfg)
 
     best_val_acc = 0
     best_val_nll = float("inf")
@@ -229,6 +258,9 @@ def main():
         if epochs_without_improvement >= patience:
             print(f"early stopping at epoch {epoch:03d}")
             break
+        
+        if scheduler is not None:
+            scheduler.step()
 
     model.load_state_dict(torch.load(cfg["save"]["checkpoint_path"], map_location=device))
     model.eval()
