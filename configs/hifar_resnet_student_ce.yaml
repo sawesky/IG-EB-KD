@@ -22,7 +22,7 @@ train:
   weight_decay: 0.0005
   scheduler:
     name: cosine
-    t_max: 200
+    t_max: 100
     min_lr: 0.00001
 
 extensions:
