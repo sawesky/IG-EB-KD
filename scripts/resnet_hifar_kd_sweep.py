@@ -10,8 +10,8 @@ import yaml
 
 BASE_CONFIG = "configs/hifar_resnet_student_kd.yaml"
 
-TEMPERATURES = [1.0, 1.5, 2.0, 3.0, 4.0]
-LAMBDAS = [0.2, 0.4, 0.6, 0.8, 1.0]
+TEMPERATURES = [1.0, 1.25, 1.5, 1.75, 2.0]
+LAMBDAS = [0.6, 0.7, 0.8, 0.9, 1.0]
 
 
 def value_to_name(value):
