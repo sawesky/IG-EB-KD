@@ -1,0 +1,40 @@
+experiment_name: hifar_wrn16_2_student_ce
+mode: ce
+seed: 42
+
+data:
+  dataset: cifar100
+  root: data
+  batch_size: 256
+  num_workers: 2
+  val_size: 0.1
+
+model:
+  name: cifar_wrn
+  depth: 16
+  widen_factor: 2
+  dropout_rate: 0.0
+  num_classes: 100
+
+train:
+  epochs: 200
+  patience: 30
+  lr: 0.0005
+  weight_decay: 0.0005
+  scheduler:
+    name: multistep
+    milestones: [60, 90, 120]
+    gamma: 0.2
+
+extensions:
+  fisher_alpha: 0.0
+  energy_beta: 0.0
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/hifar_wrn16_2_student_ce.pt
+  metrics_path: results/hifar_wrn16_2_student_ce.csv

@@ -1,0 +1,53 @@
+experiment_name: hifar_wrn40_2_to_wrn16_2_student_kd_energy
+mode: kd
+seed: 42
+
+data:
+  dataset: cifar100
+  root: data
+  batch_size: 256
+  num_workers: 2
+  val_size: 0.1
+
+model:
+  name: cifar_wrn
+  depth: 16
+  widen_factor: 2
+  dropout_rate: 0.0
+  num_classes: 100
+
+teacher:
+  checkpoint_path: checkpoints/hifar_wrn40_2_teacher.pt
+  model:
+    name: cifar_wrn
+    depth: 40
+    widen_factor: 2
+    dropout_rate: 0.0
+    num_classes: 100
+
+train:
+  epochs: 200
+  patience: 30
+  lr: 0.0005
+  weight_decay: 0.0005
+  scheduler:
+    name: multistep
+    milestones: [60, 90, 120]
+    gamma: 0.2
+
+kd:
+  temperature: 1.0
+  lambda_kd: 0.7
+
+extensions:
+  fisher_alpha: 0.0
+  energy_beta: 0.05
+  param_fisher_gamma: 0.0
+  grad_field_delta: 0.0
+
+eval:
+  ece_bins: 15
+
+save:
+  checkpoint_path: checkpoints/hifar_wrn16_2_student_kd_energy.pt
+  metrics_path: results/hifar_wrn16_2_student_kd_energy.csv
