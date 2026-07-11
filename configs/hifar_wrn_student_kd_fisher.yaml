@@ -37,7 +37,7 @@ train:
 
 kd:
   temperature: 1.0
-  lambda_kd: 0.7
+  lambda_kd: 0.8
 
 extensions:
   fisher_alpha: 0.001
