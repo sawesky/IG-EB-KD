@@ -48,7 +48,7 @@ def get_image_loaders(
     else:
         train_transform = eval_transform
 
-    # Same training images, two different transform views:
+    # same training images, two different transform views:
     # one augmented for training, one clean for validation.
     full_train_aug = DatasetClass(root=root, train=True, download=True, transform=train_transform)
     full_train_eval = DatasetClass(root=root, train=True, download=True, transform=eval_transform)
