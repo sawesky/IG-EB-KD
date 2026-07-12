@@ -40,7 +40,7 @@ kd:
   lambda_kd: 0.7
 
 extensions:
-  fisher_alpha: 0.001
+  fisher_alpha: 0.01
   energy_beta: 0.05
   param_fisher_gamma: 0.0
   grad_field_delta: 0.0
