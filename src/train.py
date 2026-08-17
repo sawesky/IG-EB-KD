@@ -9,6 +9,11 @@ from data import get_image_loaders
 from losses import ce_loss, kd_loss, output_fisher_loss, energy_margin_loss
 from metrics import accuracy, expected_calibration_error, nll, teacher_student_kl
 from models import make_model
+from head_metric import (
+    apply_linear_head_direction,
+    pack_linear_head_gradient,
+    solve_metric_direction,
+)
 from utils import append_metrics, get_device, load_checkpoint, save_checkpoint, set_seed, make_row
 
 
@@ -23,6 +28,16 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
     total_kd_kl = 0.0
     total_fisher = 0.0
     total_energy_margin = 0.0
+
+    # diagnostics for manual final-layer updates
+    total_head_grad_norm = 0.0
+    total_head_direction_norm = 0.0
+    total_head_direction_ratio = 0.0
+    total_head_direction_cosine = 0.0
+    total_cg_iterations = 0.0
+    total_cg_relative_residual = 0.0
+    head_diag_batches = 0
+
     n_batches = 0
 
     progress = tqdm(loader, desc=f"epoch {epoch:03d} train", leave=False)
@@ -31,8 +46,15 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
         images = images.to(device)
         labels = labels.to(device)
 
-        optimizer.zero_grad()
-        student_logits = model(images)
+        # clear gradients on the whole model
+        model.zero_grad(set_to_none=True)
+        head_update_mode = cfg.get("head_update", {}).get("mode", "optimizer")
+
+        if head_update_mode in {"student_fisher", "teacher_fisher"}:
+            student_logits, student_features = model(images, return_features=True)
+        else:
+            student_logits = model(images)
+            student_features = None
 
         if cfg["mode"] == "ce":
 
@@ -78,7 +100,114 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
             raise ValueError(f"Unknown mode: {cfg['mode']}")
 
         loss.backward()
-        optimizer.step()
+
+        head_gradient = None
+        direction = None
+        cg_iterations = 0
+        cg_relative_residual = 0.0
+
+        if head_update_mode == "optimizer":
+            optimizer.step()
+        elif head_update_mode == "euclidean":
+            # g_h = [grad_W | grad_b], matching the augmented [W | b] layout.
+            head_gradient = pack_linear_head_gradient(model.fc)
+            direction = head_gradient
+            head_lr = optimizer.param_groups[0]["lr"]
+
+            # Adam updates only the backbone; the head receives the explicit euclidean direction d_E = g_h.
+            optimizer.step()
+            apply_linear_head_direction(model.fc, direction, head_lr)
+
+        elif head_update_mode == "student_fisher":
+
+            head_cfg = cfg["head_update"]
+            metric_temperature = float(head_cfg.get("metric_temperature", 1.0))
+
+            head_gradient = pack_linear_head_gradient(model.fc)
+            student_metric_probs = torch.softmax(
+                student_logits.detach() / metric_temperature, dim=1
+            )
+            direction, cg_iterations, cg_relative_residual = solve_metric_direction(
+                head_gradient,
+                student_features,
+                student_metric_probs,
+                rho=float(head_cfg["rho"]),
+                tol=float(head_cfg.get("cg_tol", 1e-6)),
+                max_iter=int(head_cfg.get("cg_max_iter", 50)),
+            )
+
+            if (
+                float(head_cfg["rho"]) > 0.0
+                and cg_iterations == int(head_cfg.get("cg_max_iter", 50))
+                and cg_relative_residual > float(head_cfg.get("cg_tol", 1e-6))
+            ):
+                raise RuntimeError(
+                    "Student-Fisher CG did not converge: "
+                    f"iterations={cg_iterations}, "
+                    f"relative_residual={cg_relative_residual:.3e}"
+                )
+
+            head_lr = optimizer.param_groups[0]["lr"]
+            optimizer.step()
+            apply_linear_head_direction(model.fc, direction, head_lr)
+
+        elif head_update_mode == "teacher_fisher":
+
+            head_cfg = cfg["head_update"]
+            metric_temperature = float(head_cfg.get("metric_temperature", 1.0))
+
+            head_gradient = pack_linear_head_gradient(model.fc)
+            teacher_metric_probs = torch.softmax(
+                teacher_logits.detach() / metric_temperature, dim=1
+            )
+            direction, cg_iterations, cg_relative_residual = solve_metric_direction(
+                head_gradient,
+                student_features,
+                teacher_metric_probs,
+                rho=float(head_cfg["rho"]),
+                tol=float(head_cfg.get("cg_tol", 1e-6)),
+                max_iter=int(head_cfg.get("cg_max_iter", 50)),
+            )
+
+            if (
+                float(head_cfg["rho"]) > 0.0
+                and cg_iterations == int(head_cfg.get("cg_max_iter", 50))
+                and cg_relative_residual > float(head_cfg.get("cg_tol", 1e-6))
+            ):
+                raise RuntimeError(
+                    "Teacher-Fisher CG did not converge: "
+                    f"iterations={cg_iterations}, "
+                    f"relative_residual={cg_relative_residual:.3e}"
+                )
+
+            head_lr = optimizer.param_groups[0]["lr"]
+            optimizer.step()
+            apply_linear_head_direction(model.fc, direction, head_lr)
+        else:
+            raise ValueError(f"Unknown head update mode: {head_update_mode}")
+
+        if head_gradient is not None and direction is not None:
+            grad_norm = torch.linalg.vector_norm(head_gradient).item()
+            direction_norm = torch.linalg.vector_norm(direction).item()
+            eps = torch.finfo(head_gradient.dtype).eps
+
+            if grad_norm > eps and direction_norm > eps:
+                direction_ratio = direction_norm / grad_norm
+                direction_cosine = (
+                    torch.sum(head_gradient * direction).item()
+                    / (grad_norm * direction_norm)
+                )
+            else:
+                direction_ratio = 0.0
+                direction_cosine = 1.0
+
+            total_head_grad_norm += grad_norm
+            total_head_direction_norm += direction_norm
+            total_head_direction_ratio += direction_ratio
+            total_head_direction_cosine += direction_cosine
+            total_cg_iterations += float(cg_iterations)
+            total_cg_relative_residual += float(cg_relative_residual)
+            head_diag_batches += 1
 
         total_loss += loss.item()
         total_acc += accuracy(student_logits.detach(), labels)
@@ -93,7 +222,7 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
             acc=total_acc / n_batches,
         )
 
-    return {
+    stats = {
         "train_loss": total_loss / n_batches,
         "train_acc": total_acc / n_batches,
         "train_ce": total_ce / n_batches,
@@ -101,6 +230,20 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
         "train_fisher": total_fisher / n_batches,
         "train_energy_margin": total_energy_margin / n_batches,
     }
+
+    if head_diag_batches > 0:
+        stats.update({
+            "head_grad_norm": total_head_grad_norm / head_diag_batches,
+            "head_direction_norm": total_head_direction_norm / head_diag_batches,
+            "head_direction_ratio": total_head_direction_ratio / head_diag_batches,
+            "head_direction_cosine": total_head_direction_cosine / head_diag_batches,
+            "cg_iterations_mean": total_cg_iterations / head_diag_batches,
+            "cg_relative_residual_mean": (
+                total_cg_relative_residual / head_diag_batches
+            ),
+        })
+
+    return stats
 
 
 @torch.no_grad()
@@ -226,8 +369,18 @@ def main():
         teacher.load_state_dict(torch.load(cfg["teacher"]["checkpoint_path"], map_location=device))
         teacher.eval()
     
+    head_update_mode = cfg.get("head_update", {}).get("mode", "optimizer")
+
+    if head_update_mode == "optimizer":
+        optimizer_parameters = list(model.parameters())
+    elif head_update_mode in {"euclidean", "student_fisher", "teacher_fisher"}:
+        head_parameter_ids = {id(p) for p in model.fc.parameters()}
+        optimizer_parameters = [p for p in model.parameters() if id(p) not in head_parameter_ids]
+    else:
+        raise ValueError(f"Unknown head update mode: {head_update_mode}")
+
     optimizer = torch.optim.Adam(
-        model.parameters(),
+        optimizer_parameters,
         lr=cfg["train"]["lr"],
         weight_decay=cfg["train"]["weight_decay"],
     )
@@ -259,6 +412,17 @@ def main():
             f"val nll {val_stats['nll']:.4f} | "
             f"val ece {val_stats['ece']:.4f}"
         )
+
+        if "head_direction_ratio" in train_stats:
+            print(
+                "           head | "
+                f"||g|| {train_stats['head_grad_norm']:.3e} | "
+                f"||d|| {train_stats['head_direction_norm']:.3e} | "
+                f"||d||/||g|| {train_stats['head_direction_ratio']:.4f} | "
+                f"cos(g,d) {train_stats['head_direction_cosine']:.4f} | "
+                f"CG iters {train_stats['cg_iterations_mean']:.2f} | "
+                f"CG relres {train_stats['cg_relative_residual_mean']:.3e}"
+            )
 
         if val_stats["nll"] < best_val_nll:
             best_val_nll = val_stats["nll"]

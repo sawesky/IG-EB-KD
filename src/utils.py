@@ -54,6 +54,14 @@ def make_row(phase, epoch, train_stats=None, val_stats=None, test_stats=None, be
         "train_kd_kl": train_stats.get("train_kd_kl", ""),
         "train_fisher": train_stats.get("train_fisher", ""),
         "train_energy_margin": train_stats.get("train_energy_margin", ""),
+        "head_grad_norm": train_stats.get("head_grad_norm", ""),
+        "head_direction_norm": train_stats.get("head_direction_norm", ""),
+        "head_direction_ratio": train_stats.get("head_direction_ratio", ""),
+        "head_direction_cosine": train_stats.get("head_direction_cosine", ""),
+        "cg_iterations_mean": train_stats.get("cg_iterations_mean", ""),
+        "cg_relative_residual_mean": train_stats.get(
+            "cg_relative_residual_mean", ""
+        ),
 
         "val_acc": val_stats.get("acc", ""),
         "val_nll": val_stats.get("nll", ""),
