@@ -17,6 +17,98 @@ from head_metric import (
 from utils import append_metrics, get_device, load_checkpoint, save_checkpoint, set_seed, make_row
 
 
+def compute_training_objective(student_logits, teacher_logits, labels, cfg):
+    """Return the configured scalar objective and its logging components."""
+    if cfg["mode"] == "ce":
+        loss = ce_loss(student_logits, labels)
+        return loss, {
+            "ce": loss.item(),
+            "kd_kl": 0.0,
+            "fisher": 0.0,
+            "energy_margin": 0.0,
+        }
+
+    if cfg["mode"] != "kd":
+        raise ValueError(f"Unknown mode: {cfg['mode']}")
+
+    loss, terms = kd_loss(
+        student_logits,
+        teacher_logits,
+        labels,
+        temperature=cfg["kd"]["temperature"],
+        lambda_kd=cfg["kd"]["lambda_kd"],
+    )
+
+    fisher_alpha = cfg["extensions"]["fisher_alpha"]
+    if fisher_alpha > 0.0:
+        fisher_loss = output_fisher_loss(student_logits, teacher_logits)
+        loss = loss + fisher_alpha * fisher_loss
+        terms["fisher"] = fisher_loss.item()
+    else:
+        terms["fisher"] = 0.0
+
+    energy_beta = cfg["extensions"]["energy_beta"]
+    if energy_beta > 0.0:
+        margin_loss = energy_margin_loss(student_logits, teacher_logits)
+        loss = loss + energy_beta * margin_loss
+        terms["energy_margin"] = margin_loss.item()
+    else:
+        terms["energy_margin"] = 0.0
+
+    return loss, terms
+
+
+def compute_head_direction(
+    model,
+    head_update_mode,
+    student_features,
+    student_logits,
+    teacher_logits,
+    head_cfg,
+):
+    """Build the explicit final-layer direction from the current head gradient."""
+    head_gradient = pack_linear_head_gradient(model.fc)
+
+    if head_update_mode == "euclidean":
+        return head_gradient, head_gradient, 0, 0.0
+
+    metric_temperature = float(head_cfg.get("metric_temperature", 1.0))
+    if head_update_mode == "student_fisher":
+        metric_logits = student_logits
+    elif head_update_mode == "teacher_fisher":
+        if teacher_logits is None:
+            raise ValueError("Teacher-Fisher head updates require a teacher")
+        metric_logits = teacher_logits
+    else:
+        raise ValueError(f"Unknown manual head update mode: {head_update_mode}")
+
+    metric_probs = torch.softmax(
+        metric_logits.detach() / metric_temperature,
+        dim=1,
+    )
+    direction, cg_iterations, cg_relative_residual = solve_metric_direction(
+        head_gradient,
+        student_features,
+        metric_probs,
+        rho=float(head_cfg["rho"]),
+        tol=float(head_cfg.get("cg_tol", 1e-6)),
+        max_iter=int(head_cfg.get("cg_max_iter", 50)),
+    )
+
+    if (
+        float(head_cfg["rho"]) > 0.0
+        and cg_iterations == int(head_cfg.get("cg_max_iter", 50))
+        and cg_relative_residual > float(head_cfg.get("cg_tol", 1e-6))
+    ):
+        raise RuntimeError(
+            f"{head_update_mode} CG did not converge: "
+            f"iterations={cg_iterations}, "
+            f"relative_residual={cg_relative_residual:.3e}"
+        )
+
+    return head_gradient, direction, cg_iterations, cg_relative_residual
+
+
 def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
     model.train()
     if teacher is not None:
@@ -246,6 +338,172 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
     return stats
 
 
+def train_one_epoch_alternating(model, teacher, loader, optimizer, cfg, device, epoch):
+    """Update the head first, then the backbone through the updated head.
+
+    The backbone is evaluated once per minibatch. Its feature graph is retained,
+    while detached features are used for the inner head step. The outer loss is
+    then rebuilt with the updated head and differentiated only with respect to
+    the parameters owned by the backbone optimizer. This is a first-order
+    block-coordinate update; it deliberately does not differentiate through the
+    head update itself.
+    """
+    model.train()
+    if teacher is not None:
+        teacher.eval()
+
+    head_cfg = cfg.get("head_update", {})
+    head_update_mode = head_cfg.get("mode", "optimizer")
+    manual_modes = {"euclidean", "student_fisher", "teacher_fisher"}
+    if head_update_mode not in manual_modes:
+        raise ValueError(
+            "Alternating updates require one of "
+            f"{sorted(manual_modes)}, got {head_update_mode!r}"
+        )
+
+    backbone_parameters = [
+        parameter
+        for group in optimizer.param_groups
+        for parameter in group["params"]
+        if parameter.requires_grad
+    ]
+    if not backbone_parameters:
+        raise ValueError("The backbone optimizer has no trainable parameters")
+
+    total_loss = 0.0
+    total_acc = 0.0
+    total_ce = 0.0
+    total_kd_kl = 0.0
+    total_fisher = 0.0
+    total_energy_margin = 0.0
+    total_head_loss_before = 0.0
+    total_head_loss_after = 0.0
+    total_head_loss_decrease = 0.0
+
+    total_head_grad_norm = 0.0
+    total_head_direction_norm = 0.0
+    total_head_direction_ratio = 0.0
+    total_head_direction_cosine = 0.0
+    total_cg_iterations = 0.0
+    total_cg_relative_residual = 0.0
+    n_batches = 0
+
+    progress = tqdm(loader, desc=f"epoch {epoch:03d} train", leave=False)
+
+    for images, labels in progress:
+        images = images.to(device)
+        labels = labels.to(device)
+        model.zero_grad(set_to_none=True)
+
+        # One stochastic backbone pass. Discard its old-head logits, but retain
+        # the feature graph for the later backbone-only backward pass.
+        unused_logits, student_features = model(images, return_features=True)
+        del unused_logits
+
+        teacher_logits = None
+        if cfg["mode"] == "kd":
+            with torch.no_grad():
+                teacher_logits = teacher(images)
+
+        # Inner step: detached features ensure that only the head gets grads.
+        head_logits = model.fc(student_features.detach())
+        head_loss, _ = compute_training_objective(
+            head_logits,
+            teacher_logits,
+            labels,
+            cfg,
+        )
+        head_loss.backward()
+
+        (
+            head_gradient,
+            direction,
+            cg_iterations,
+            cg_relative_residual,
+        ) = compute_head_direction(
+            model,
+            head_update_mode,
+            student_features,
+            head_logits,
+            teacher_logits,
+            head_cfg,
+        )
+
+        head_lr = optimizer.param_groups[0]["lr"]
+        apply_linear_head_direction(model.fc, direction, head_lr)
+
+        # Outer step: rebuild the objective with the newly updated head. Limit
+        # gradient accumulation to the backbone parameters owned by Adam.
+        model.zero_grad(set_to_none=True)
+        student_logits = model.fc(student_features)
+        loss, terms = compute_training_objective(
+            student_logits,
+            teacher_logits,
+            labels,
+            cfg,
+        )
+        torch.autograd.backward(loss, inputs=backbone_parameters)
+        optimizer.step()
+
+        grad_norm = torch.linalg.vector_norm(head_gradient).item()
+        direction_norm = torch.linalg.vector_norm(direction).item()
+        eps = torch.finfo(head_gradient.dtype).eps
+
+        if grad_norm > eps and direction_norm > eps:
+            direction_ratio = direction_norm / grad_norm
+            direction_cosine = (
+                torch.sum(head_gradient * direction).item()
+                / (grad_norm * direction_norm)
+            )
+        else:
+            direction_ratio = 0.0
+            direction_cosine = 1.0
+
+        head_loss_before = head_loss.item()
+        head_loss_after = loss.item()
+        total_head_loss_before += head_loss_before
+        total_head_loss_after += head_loss_after
+        total_head_loss_decrease += head_loss_before - head_loss_after
+        total_head_grad_norm += grad_norm
+        total_head_direction_norm += direction_norm
+        total_head_direction_ratio += direction_ratio
+        total_head_direction_cosine += direction_cosine
+        total_cg_iterations += float(cg_iterations)
+        total_cg_relative_residual += float(cg_relative_residual)
+
+        total_loss += head_loss_after
+        total_acc += accuracy(student_logits.detach(), labels)
+        total_ce += terms.get("ce", 0.0)
+        total_kd_kl += terms.get("kd_kl", 0.0)
+        total_fisher += terms.get("fisher", 0.0)
+        total_energy_margin += terms.get("energy_margin", 0.0)
+        n_batches += 1
+
+        progress.set_postfix(
+            loss=total_loss / n_batches,
+            acc=total_acc / n_batches,
+            head_delta=total_head_loss_decrease / n_batches,
+        )
+
+    return {
+        "train_loss": total_loss / n_batches,
+        "train_acc": total_acc / n_batches,
+        "train_ce": total_ce / n_batches,
+        "train_kd_kl": total_kd_kl / n_batches,
+        "train_fisher": total_fisher / n_batches,
+        "train_energy_margin": total_energy_margin / n_batches,
+        "head_loss_before": total_head_loss_before / n_batches,
+        "head_loss_after": total_head_loss_after / n_batches,
+        "head_loss_decrease": total_head_loss_decrease / n_batches,
+        "head_grad_norm": total_head_grad_norm / n_batches,
+        "head_direction_norm": total_head_direction_norm / n_batches,
+        "head_direction_ratio": total_head_direction_ratio / n_batches,
+        "head_direction_cosine": total_head_direction_cosine / n_batches,
+        "cg_iterations_mean": total_cg_iterations / n_batches,
+        "cg_relative_residual_mean": total_cg_relative_residual / n_batches,
+    }
+
+
 @torch.no_grad()
 def evaluate(model, teacher, loader, cfg, device, epoch):
     model.eval()
@@ -347,7 +605,7 @@ def main():
         cfg = yaml.safe_load(f)
     if os.path.exists(cfg["save"]["metrics_path"]):
         os.remove(cfg["save"]["metrics_path"])
-    
+
     set_seed(cfg["seed"])
     device = get_device()
 
@@ -369,7 +627,21 @@ def main():
         teacher.load_state_dict(torch.load(cfg["teacher"]["checkpoint_path"], map_location=device))
         teacher.eval()
     
-    head_update_mode = cfg.get("head_update", {}).get("mode", "optimizer")
+    head_update_cfg = cfg.get("head_update", {})
+    head_update_mode = head_update_cfg.get("mode", "optimizer")
+    head_update_scheme = head_update_cfg.get("scheme", "simultaneous")
+
+    if head_update_scheme not in {"simultaneous", "alternating"}:
+        raise ValueError(f"Unknown head update scheme: {head_update_scheme}")
+    if head_update_scheme == "alternating" and head_update_mode == "optimizer":
+        raise ValueError(
+            "Alternating updates require an explicit manual head mode; choose "
+            "euclidean, student_fisher, or teacher_fisher"
+        )
+    if head_update_mode == "teacher_fisher" and teacher is None:
+        raise ValueError("Teacher-Fisher head updates require mode: kd")
+    if head_update_mode != "optimizer" and not isinstance(model.fc, torch.nn.Linear):
+        raise TypeError("Manual head updates currently require model.fc to be nn.Linear")
 
     if head_update_mode == "optimizer":
         optimizer_parameters = list(model.parameters())
@@ -387,6 +659,11 @@ def main():
     
     scheduler = make_scheduler(optimizer, cfg)
 
+    if head_update_mode == "optimizer":
+        print("head update: optimizer")
+    else:
+        print(f"head update: {head_update_mode} ({head_update_scheme})")
+
     best_val_acc = 0
     best_val_nll = float("inf")
     best_epoch = 0
@@ -394,7 +671,26 @@ def main():
     patience = cfg["train"]["patience"]
 
     for epoch in range(1, cfg["train"]["epochs"] + 1):
-        train_stats = train_one_epoch(model, teacher, train_loader, optimizer, cfg, device, epoch)
+        if head_update_scheme == "alternating":
+            train_stats = train_one_epoch_alternating(
+                model,
+                teacher,
+                train_loader,
+                optimizer,
+                cfg,
+                device,
+                epoch,
+            )
+        else:
+            train_stats = train_one_epoch(
+                model,
+                teacher,
+                train_loader,
+                optimizer,
+                cfg,
+                device,
+                epoch,
+            )
         val_stats = evaluate(model, teacher, val_loader, cfg, device, epoch)
 
         row = make_row(
@@ -403,6 +699,9 @@ def main():
             train_stats=train_stats,
             val_stats=val_stats,
         )
+        row["head_loss_before"] = train_stats.get("head_loss_before", "")
+        row["head_loss_after"] = train_stats.get("head_loss_after", "")
+        row["head_loss_decrease"] = train_stats.get("head_loss_decrease", "")
         append_metrics(cfg["save"]["metrics_path"], row)
 
         print(
@@ -422,6 +721,14 @@ def main():
                 f"cos(g,d) {train_stats['head_direction_cosine']:.4f} | "
                 f"CG iters {train_stats['cg_iterations_mean']:.2f} | "
                 f"CG relres {train_stats['cg_relative_residual_mean']:.3e}"
+            )
+
+        if "head_loss_decrease" in train_stats:
+            print(
+                "    alternating | "
+                f"loss before {train_stats['head_loss_before']:.4f} | "
+                f"loss after {train_stats['head_loss_after']:.4f} | "
+                f"decrease {train_stats['head_loss_decrease']:.3e}"
             )
 
         if val_stats["nll"] < best_val_nll:
