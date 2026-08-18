@@ -10,7 +10,7 @@ import yaml
 
 BASE_CONFIG = "configs/cifar_resnet_student_kd.yaml"
 
-RHOS = [1, 5, 10]
+RHOS = [0.1, 0.5, 1]
 SWEEP_SEED = 42
 
 BEST_KD_T = 1.0
