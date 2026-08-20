@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Select alternating Student/Teacher Fisher rho using validation NLL only."""
+"""Select rho using validation NLL, then report validation and test metrics."""
 
 import argparse
 import csv
@@ -51,11 +51,16 @@ def summarize_run(metric, rho, seed):
         rows = list(csv.DictReader(handle))
 
     val_rows = [row for row in rows if row.get("phase") == "val"]
+    test_rows = [row for row in rows if row.get("phase") == "test"]
     if not val_rows:
         print(f"no validation rows: {path}")
         return None
+    if not test_rows:
+        print(f"no test row: {path}")
+        return None
 
     best = min(val_rows, key=lambda row: get_float(row, "val_nll"))
+    test = test_rows[-1]
     return {
         "metric": metric,
         "rho": rho,
@@ -68,6 +73,12 @@ def summarize_run(metric, rho, seed):
         "best_val_ts_kl": get_float(best, "val_teacher_student_kl"),
         "best_val_fisher_mismatch": get_float(best, "val_fisher_mismatch"),
         "best_val_energy_mismatch": get_float(best, "val_energy_mismatch"),
+        "test_acc": get_float(test, "test_acc"),
+        "test_nll": get_float(test, "test_nll"),
+        "test_ece": get_float(test, "test_ece"),
+        "test_ts_kl": get_float(test, "test_teacher_student_kl"),
+        "test_fisher_mismatch": get_float(test, "test_fisher_mismatch"),
+        "test_energy_mismatch": get_float(test, "test_energy_mismatch"),
         "head_loss_before": get_float(best, "head_loss_before"),
         "head_loss_after": get_float(best, "head_loss_after"),
         "head_loss_decrease": get_float(best, "head_loss_decrease"),
@@ -122,6 +133,12 @@ def print_table(metric, rows, tie_tolerance):
         f"rho={selected['rho']:g}, "
         f"val_nll={selected['best_val_nll']:.6f}"
     )
+    print(
+        "Selected-run test report (not used for rho selection): "
+        f"acc={selected['test_acc']:.6f}, "
+        f"nll={selected['test_nll']:.6f}, "
+        f"ece={selected['test_ece']:.6f}"
+    )
 
 
 def save_summary(rows):
@@ -139,6 +156,12 @@ def save_summary(rows):
         "best_val_ts_kl",
         "best_val_fisher_mismatch",
         "best_val_energy_mismatch",
+        "test_acc",
+        "test_nll",
+        "test_ece",
+        "test_ts_kl",
+        "test_fisher_mismatch",
+        "test_energy_mismatch",
         "head_loss_before",
         "head_loss_after",
         "head_loss_decrease",
@@ -151,12 +174,18 @@ def save_summary(rows):
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
-    print(f"\nsaved validation-only summary: {OUT_PATH}")
+    print(
+        "\nsaved summary (rho selected by validation NLL; test metrics "
+        f"reported only): {OUT_PATH}"
+    )
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Summarize alternating rho sweeps without reading test metrics."
+        description=(
+            "Select alternating rho using validation NLL and report the final "
+            "test metrics without using them for selection."
+        )
     )
     parser.add_argument(
         "--metric",
