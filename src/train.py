@@ -109,6 +109,23 @@ def compute_head_direction(
     return head_gradient, direction, cg_iterations, cg_relative_residual
 
 
+def resolve_manual_head_lr(head_cfg, optimizer):
+    """Return the manual head step size.
+
+    An explicit ``head_update.lr`` is constant and independent of the backbone
+    optimizer scheduler. When it is absent, retain the historical behavior and
+    follow the current backbone optimizer learning rate.
+    """
+    if "lr" in head_cfg:
+        head_lr = float(head_cfg["lr"])
+    else:
+        head_lr = float(optimizer.param_groups[0]["lr"])
+
+    if head_lr <= 0.0:
+        raise ValueError(f"Manual head learning rate must be positive, got {head_lr}")
+    return head_lr
+
+
 def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
     model.train()
     if teacher is not None:
@@ -132,6 +149,12 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
 
     n_batches = 0
 
+    head_cfg = cfg.get("head_update", {})
+    head_update_mode = head_cfg.get("mode", "optimizer")
+    head_lr = None
+    if head_update_mode != "optimizer":
+        head_lr = resolve_manual_head_lr(head_cfg, optimizer)
+
     progress = tqdm(loader, desc=f"epoch {epoch:03d} train", leave=False)
 
     for images, labels in progress:
@@ -140,8 +163,6 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
 
         # clear gradients on the whole model
         model.zero_grad(set_to_none=True)
-        head_update_mode = cfg.get("head_update", {}).get("mode", "optimizer")
-
         if head_update_mode in {"student_fisher", "teacher_fisher"}:
             student_logits, student_features = model(images, return_features=True)
         else:
@@ -204,8 +225,6 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
             # g_h = [grad_W | grad_b], matching the augmented [W | b] layout.
             head_gradient = pack_linear_head_gradient(model.fc)
             direction = head_gradient
-            head_lr = optimizer.param_groups[0]["lr"]
-
             # Adam updates only the backbone; the head receives the explicit euclidean direction d_E = g_h.
             optimizer.step()
             apply_linear_head_direction(model.fc, direction, head_lr)
@@ -239,7 +258,6 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
                     f"relative_residual={cg_relative_residual:.3e}"
                 )
 
-            head_lr = optimizer.param_groups[0]["lr"]
             optimizer.step()
             apply_linear_head_direction(model.fc, direction, head_lr)
 
@@ -272,7 +290,6 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
                     f"relative_residual={cg_relative_residual:.3e}"
                 )
 
-            head_lr = optimizer.param_groups[0]["lr"]
             optimizer.step()
             apply_linear_head_direction(model.fc, direction, head_lr)
         else:
@@ -325,6 +342,7 @@ def train_one_epoch(model, teacher, loader, optimizer, cfg, device, epoch):
 
     if head_diag_batches > 0:
         stats.update({
+            "head_lr": head_lr,
             "head_grad_norm": total_head_grad_norm / head_diag_batches,
             "head_direction_norm": total_head_direction_norm / head_diag_batches,
             "head_direction_ratio": total_head_direction_ratio / head_diag_batches,
@@ -360,6 +378,8 @@ def train_one_epoch_alternating(model, teacher, loader, optimizer, cfg, device, 
             "Alternating updates require one of "
             f"{sorted(manual_modes)}, got {head_update_mode!r}"
         )
+
+    head_lr = resolve_manual_head_lr(head_cfg, optimizer)
 
     backbone_parameters = [
         parameter
@@ -429,7 +449,6 @@ def train_one_epoch_alternating(model, teacher, loader, optimizer, cfg, device, 
             head_cfg,
         )
 
-        head_lr = optimizer.param_groups[0]["lr"]
         apply_linear_head_direction(model.fc, direction, head_lr)
 
         # Outer step: rebuild the objective with the newly updated head. Limit
@@ -495,6 +514,7 @@ def train_one_epoch_alternating(model, teacher, loader, optimizer, cfg, device, 
         "head_loss_before": total_head_loss_before / n_batches,
         "head_loss_after": total_head_loss_after / n_batches,
         "head_loss_decrease": total_head_loss_decrease / n_batches,
+        "head_lr": head_lr,
         "head_grad_norm": total_head_grad_norm / n_batches,
         "head_direction_norm": total_head_direction_norm / n_batches,
         "head_direction_ratio": total_head_direction_ratio / n_batches,
@@ -662,7 +682,16 @@ def main():
     if head_update_mode == "optimizer":
         print("head update: optimizer")
     else:
-        print(f"head update: {head_update_mode} ({head_update_scheme})")
+        if "lr" in head_update_cfg:
+            head_lr_description = (
+                f"constant head LR={float(head_update_cfg['lr']):.6g}"
+            )
+        else:
+            head_lr_description = "head LR follows backbone optimizer schedule"
+        print(
+            f"head update: {head_update_mode} ({head_update_scheme}) | "
+            f"{head_lr_description}"
+        )
 
     best_val_acc = 0
     best_val_nll = float("inf")
@@ -702,6 +731,7 @@ def main():
         row["head_loss_before"] = train_stats.get("head_loss_before", "")
         row["head_loss_after"] = train_stats.get("head_loss_after", "")
         row["head_loss_decrease"] = train_stats.get("head_loss_decrease", "")
+        row["head_lr"] = train_stats.get("head_lr", "")
         append_metrics(cfg["save"]["metrics_path"], row)
 
         print(
@@ -715,6 +745,7 @@ def main():
         if "head_direction_ratio" in train_stats:
             print(
                 "           head | "
+                f"LR {train_stats['head_lr']:.3e} | "
                 f"||g|| {train_stats['head_grad_norm']:.3e} | "
                 f"||d|| {train_stats['head_direction_norm']:.3e} | "
                 f"||d||/||g|| {train_stats['head_direction_ratio']:.4f} | "

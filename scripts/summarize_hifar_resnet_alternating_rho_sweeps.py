@@ -3,6 +3,7 @@
 
 import argparse
 import csv
+import math
 from pathlib import Path
 
 
@@ -10,6 +11,7 @@ DEFAULT_RHOS = [0.1, 0.5, 1.0]
 DEFAULT_SEED = 42
 DEFAULT_TIE_TOLERANCE = 0.005
 RESULT_DIR = Path("results/head_metric/alternating/seeds")
+HEAD_LR = 0.0005
 OUT_PATH = Path(
     "results/head_metric/alternating/rho_sweeps/"
     "hifar_resnet_alternating_rho_sweeps_validation_summary.csv"
@@ -61,9 +63,22 @@ def summarize_run(metric, rho, seed):
 
     best = min(val_rows, key=lambda row: get_float(row, "val_nll"))
     test = test_rows[-1]
+    observed_head_lr = get_float(best, "head_lr", default=float("nan"))
+    if not math.isclose(
+        observed_head_lr,
+        HEAD_LR,
+        rel_tol=1e-9,
+        abs_tol=1e-12,
+    ):
+        raise RuntimeError(
+            f"Expected constant head LR {HEAD_LR:g}, but best row in {path} "
+            f"records {best.get('head_lr', '')!r}"
+        )
     return {
         "metric": metric,
         "rho": rho,
+        "head_lr": HEAD_LR,
+        "head_lr_at_best_epoch": observed_head_lr,
         "seed": seed,
         "metrics_path": str(path),
         "best_epoch": int(float(best["epoch"])),
@@ -96,6 +111,7 @@ def summarize_run(metric, rho, seed):
 def print_table(metric, rows, tie_tolerance):
     label = "STUDENT-FISHER" if metric == "student" else "TEACHER-INDUCED FISHER"
     print(f"\nCIFAR-100 RESNET ALTERNATING {label} RHO SWEEP")
+    print(f"fixed constant head LR: {HEAD_LR:g}")
     print(
         "rho | epoch | val_acc | val_nll | val_ece | val_ts_kl | "
         "||d||/||g|| | cos(g,d) | CG iters | CG relres"
@@ -146,6 +162,8 @@ def save_summary(rows):
     fieldnames = [
         "metric",
         "rho",
+        "head_lr",
+        "head_lr_at_best_epoch",
         "seed",
         "selected",
         "metrics_path",

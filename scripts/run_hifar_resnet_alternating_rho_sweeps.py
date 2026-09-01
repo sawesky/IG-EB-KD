@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Run validation-tuning rho sweeps for alternating Fisher head updates."""
+"""Run validation-tuning rho sweeps with a locked manual head step size."""
 
 import argparse
 import copy
 import csv
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -16,6 +17,7 @@ DEFAULT_RHOS = [0.1, 0.5, 1.0]
 DEFAULT_SEED = 42
 BEST_KD_T = 1.0
 BEST_KD_LAMBDA = 0.7
+HEAD_LR = 0.0005
 
 
 def value_to_name(value):
@@ -24,18 +26,32 @@ def value_to_name(value):
 
 
 def metrics_status(path):
-    """Return missing, complete, or incomplete for one training CSV."""
+    """Classify one CSV, including its manual-head LR provenance."""
     path = Path(path)
     if not path.exists():
         return "missing"
 
     try:
         with path.open("r", newline="") as handle:
-            if any(row.get("phase") == "test" for row in csv.DictReader(handle)):
-                return "complete"
+            rows = list(csv.DictReader(handle))
     except (OSError, csv.Error):
-        pass
-    return "incomplete"
+        return "incomplete"
+
+    if not any(row.get("phase") == "test" for row in rows):
+        return "incomplete"
+
+    val_rows = [row for row in rows if row.get("phase") == "val"]
+    try:
+        recorded_head_lrs = [float(row["head_lr"]) for row in val_rows]
+    except (KeyError, TypeError, ValueError):
+        return "incompatible"
+
+    if val_rows and all(
+        math.isclose(lr, HEAD_LR, rel_tol=1e-9, abs_tol=1e-12)
+        for lr in recorded_head_lrs
+    ):
+        return "complete"
+    return "incompatible"
 
 
 def make_run(metric, rho):
@@ -64,6 +80,7 @@ def make_run(metric, rho):
             "scheme": "alternating",
             "metric_temperature": 1.0,
             "rho": rho,
+            "lr": HEAD_LR,
             "cg_tol": 1.0e-6,
             "cg_max_iter": 50,
         },
@@ -120,6 +137,7 @@ def main():
     scheduled = 0
     skipped = 0
     blocked = 0
+    replaced = 0
     for metric in metrics:
         for rho in args.rhos:
             run = make_run(metric, rho)
@@ -148,7 +166,7 @@ def main():
             print("\n" + "=" * 80)
             print(
                 f"Alternating {run['label']} | rho={rho:g} | "
-                f"tuning seed={args.seed}"
+                f"constant head LR={HEAD_LR:g} | tuning seed={args.seed}"
             )
 
             status = metrics_status(metrics_path)
@@ -161,6 +179,12 @@ def main():
                 print("Use --rerun-existing only if you intend to overwrite it.")
                 blocked += 1
                 continue
+            if status == "incompatible":
+                print(
+                    "REPLACE old completed CSV: it was not produced with "
+                    f"constant head LR={HEAD_LR:g}: {metrics_path}"
+                )
+                replaced += 1
 
             command = [
                 sys.executable,
@@ -175,7 +199,7 @@ def main():
 
     print(
         f"\nSweep finished: scheduled={scheduled}, skipped={skipped}, "
-        f"blocked={blocked}.\n"
+        f"replacing_old={replaced}, blocked={blocked}.\n"
         "Select rho using validation only:\n"
         "python scripts/summarize_hifar_resnet_alternating_rho_sweeps.py "
         f"--rhos {' '.join(f'{rho:g}' for rho in args.rhos)} "

@@ -54,7 +54,7 @@ def parameter_change(before, parameters):
     )
 
 
-def check_mode(mode):
+def check_mode(mode, *, explicit_head_lr=True):
     torch.manual_seed(7)
     model = ToyStudent()
     teacher = ToyTeacher()
@@ -86,6 +86,8 @@ def check_mode(mode):
             "cg_max_iter": 50,
         },
     }
+    if explicit_head_lr:
+        cfg["head_update"]["lr"] = 0.01
 
     backbone_before = [parameter.detach().clone() for parameter in backbone_parameters]
     head_parameters = list(model.fc.parameters())
@@ -116,11 +118,14 @@ def check_mode(mode):
         "The outer backward pass accumulated head gradients"
     )
     assert math.isfinite(stats["head_loss_decrease"])
+    expected_head_lr = 0.01 if explicit_head_lr else 0.05
+    assert math.isclose(stats["head_lr"], expected_head_lr)
     if mode != "euclidean":
         assert stats["cg_relative_residual_mean"] <= cfg["head_update"]["cg_tol"]
 
     print(
         f"ok: {mode:15s} | "
+        f"head lr={stats['head_lr']:.3e} | "
         f"head loss decrease={stats['head_loss_decrease']:+.3e} | "
         f"CG relres={stats['cg_relative_residual_mean']:.3e}"
     )
@@ -129,6 +134,7 @@ def check_mode(mode):
 def main():
     for mode in ("euclidean", "student_fisher", "teacher_fisher"):
         check_mode(mode)
+    check_mode("euclidean", explicit_head_lr=False)
     print("alternating update smoke test passed")
 
 
