@@ -10,7 +10,7 @@ from statistics import mean, stdev
 
 DEFAULT_SEEDS = [42, 43, 44, 45, 46]
 RESULT_DIR = Path("results/head_metric/alternating/seeds")
-HEAD_LR = 0.0005
+HEAD_LR = 0.05
 OUT_PATH = Path(
     "results/head_metric/alternating/"
     "hifar_resnet_alternating_final_seeds_summary.csv"

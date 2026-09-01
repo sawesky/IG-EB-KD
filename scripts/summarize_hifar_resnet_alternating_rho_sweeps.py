@@ -11,7 +11,7 @@ DEFAULT_RHOS = [0.1, 0.5, 1.0]
 DEFAULT_SEED = 42
 DEFAULT_TIE_TOLERANCE = 0.005
 RESULT_DIR = Path("results/head_metric/alternating/seeds")
-HEAD_LR = 0.0005
+HEAD_LR = 0.05
 OUT_PATH = Path(
     "results/head_metric/alternating/rho_sweeps/"
     "hifar_resnet_alternating_rho_sweeps_validation_summary.csv"
