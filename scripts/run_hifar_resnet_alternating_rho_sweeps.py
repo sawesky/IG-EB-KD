@@ -17,7 +17,7 @@ DEFAULT_RHOS = [0.1, 0.5, 1.0]
 DEFAULT_SEED = 42
 BEST_KD_T = 1.0
 BEST_KD_LAMBDA = 0.7
-HEAD_LR = 0.02
+HEAD_LR = 0.04
 
 
 def value_to_name(value):
