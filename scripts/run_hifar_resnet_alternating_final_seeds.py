@@ -18,7 +18,7 @@ DEFAULT_SEEDS = [42, 43, 44, 45, 46]
 DEFAULT_METHODS = ["euclidean", "student", "teacher"]
 BEST_KD_T = 1.0
 BEST_KD_LAMBDA = 0.7
-HEAD_LR = 0.002
+HEAD_LR = 0.005
 
 
 def value_to_name(value):
