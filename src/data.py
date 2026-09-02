@@ -92,3 +92,31 @@ def get_image_loaders(
     )
 
     return train_loader, val_loader, test_loader
+
+# build only test loader
+def get_image_test_loader(
+    dataset_name="mnist",
+    root="data",
+    batch_size=128,
+    num_workers=2,
+):
+
+    DatasetClass, mean, std = get_dataset_and_stats(dataset_name)
+
+    eval_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std),
+    ])
+    test_set = DatasetClass(
+        root=root,
+        train=False,
+        download=True,
+        transform=eval_transform,
+    )
+
+    return DataLoader(
+        test_set,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+    )
