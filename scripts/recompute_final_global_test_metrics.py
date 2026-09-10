@@ -114,7 +114,7 @@ GROUPS = {
         selected_alternating_variants=(
             "cifar_resnet20_kd_head_euclidean_alternating",
             "cifar_resnet20_kd_head_student_fisher_rho0p1_alternating",
-            "cifar_resnet20_kd_head_teacher_fisher_rho1_alternating",
+            "cifar_resnet20_kd_head_teacher_fisher_rho0p1_alternating",
         ),
     ),
     "cifar10_wrn": GroupSpec(
