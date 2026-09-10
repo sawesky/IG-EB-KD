@@ -9,3 +9,4 @@ configs/generated/
 logs/
 colab_runner.ipynb
 results_hufflepuff/
+results-global/
